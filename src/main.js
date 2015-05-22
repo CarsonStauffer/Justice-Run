@@ -9,6 +9,8 @@ function preload() {
 	game.load.image('block', 'assets/block.png');
 	game.load.image('sky', 'assets/sky.png');
 	game.load.image('star', 'assets/star.png');
+	game.load.image('big mountains', 'assets/Mountain-background.png');
+	game.load.image('small mountains', 'assets/Mountain-background-small.png');
 	game.load.spritesheet('mario', 'assets/mario_run.png', 72, 88);
 
 }
@@ -17,14 +19,29 @@ var platforms;
 var player;
 var cursors;
 
+var farBackground;
+var nearBackground;
+
+
+
 
 function create() {
+
+	// Set world size
+	game.world.setBounds(0,0,800, 600);
 
 	// enable 'arcade' physics
 	game.physics.startSystem(Phaser.Physics.ARCADE);
 
-	// add the background
+	// add the sky background
 	game.add.sprite(0, 0, 'sky');
+
+
+	// Testing the scrolling background
+
+	// add the large mountains in the background
+	farBackground  = game.add.tileSprite( 0, 0, 800, game.cache.getImage('big mountains').height, 'big mountains');
+	nearBackground = game.add.tileSprite( 0, -64, 800, game.cache.getImage('small mountains').height, 'small mountains');
 
 	// create a group for the platforms and ground
 	platforms = game.add.group();
@@ -67,6 +84,9 @@ function create() {
 		this.jump();
 	});
 
+	// Camera
+	game.camera.follow(player);
+
 }
 
 function update() {
@@ -85,7 +105,6 @@ function update() {
 
 		player.animations.play('left');
 
-
 	}else if(cursors.right.isDown){
 		// Move right
 		player.body.velocity.x = 450;
@@ -98,7 +117,9 @@ function update() {
 		player.frame = 4;
 	}
 
-
+	/* Background */
+	farBackground.tilePosition.x -= player.body.velocity.x * 0.005;
+	nearBackground.tilePosition.x -= player.body.velocity.x * 0.009;
 
 
 
