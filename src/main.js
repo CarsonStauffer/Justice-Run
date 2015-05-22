@@ -11,6 +11,7 @@ function preload() {
 	game.load.image('star', 'assets/star.png');
 	game.load.image('big mountains', 'assets/Mountain-background.png');
 	game.load.image('small mountains', 'assets/Mountain-background-small.png');
+	game.load.image('ground', 'assets/mario ground violated.png');
 	game.load.spritesheet('mario', 'assets/mario_run.png', 72, 88);
 
 }
@@ -18,9 +19,15 @@ function preload() {
 var platforms;
 var player;
 var cursors;
+var jumpsquatTimer;
 
 var farBackground;
 var nearBackground;
+var foreground;
+
+var runSpeed;
+var canDoubleJump = false;
+
 
 
 
@@ -28,16 +35,13 @@ var nearBackground;
 function create() {
 
 	// Set world size
-	game.world.setBounds(0,0,800, 600);
+	game.world.setBounds( 0, 0, 800, 600);
 
 	// enable 'arcade' physics
 	game.physics.startSystem(Phaser.Physics.ARCADE);
 
 	// add the sky background
 	game.add.sprite(0, 0, 'sky');
-
-
-	// Testing the scrolling background
 
 	// add the large mountains in the background
 	farBackground  = game.add.tileSprite( 0, 0, 800, game.cache.getImage('big mountains').height, 'big mountains');
@@ -50,29 +54,32 @@ function create() {
 	platforms.enableBody = true;
 
 
-	// Create the ground
-	var ground = platforms.create(0, game.world.height - 64, 'block');
-	ground.scale.setTo(2);
-	ground.body.immovable = true;
+	// Create the foreground
+	foreground = game.add.tileSprite(0, game.world.height - 64, 800, 64, 'ground');
+	platforms.add(foreground);
+	foreground.body.immovable = true;
 
 	// create some platforms
-	var platform = platforms.create(-150, game.world.height/2 - 16, 'block');
-	platform.body.immovable = true;
+	// var platform = platforms.create(-150, game.world.height/2 - 16, 'block');
+	// platform.body.immovable = true;
 
-	platform = platforms.create(400, 400, 'block');
-	platform.body.immovable = true;
+	// platform = platforms.create(400, 400, 'block');
+	// platform.body.immovable = true;
 
 
 	// create the player
 	player = game.add.sprite(32, game.world.height - 150, 'mario');
 	game.physics.arcade.enable(player);
+	player.body.checkCollision.up = false;
+	player.body.checkCollision.left = false;
+	player.body.checkCollision.right = false;
+
 
 	// Player physics properties
 	player.body.gravity.y = 4500;
 	player.body.collideWorldBounds = true;
 
 	// Player animations
-	player.animations.add('left',  [7,6,5,4,3,2,1,0], 24, true);
 	player.animations.add('right', [0,1,2,3,4,5,6,7], 24, true);
 
 
@@ -84,8 +91,21 @@ function create() {
 		this.jump();
 	});
 
+	// Shorthopping
+	cursors.up.onUp.add( function() {
+		shorthop();
+	})
+
+	// create the jumpsquat timer for enabling short hops and full hops
+	// jumpsquatTimer = new Phaser.Timer(game, false);
+	jumpsquatTimer = new Phaser.Timer(game, false);
+	
+
 	// Camera
 	game.camera.follow(player);
+
+
+
 
 }
 
@@ -95,39 +115,78 @@ function update() {
 	game.physics.arcade.collide(player, platforms);
 
 	/* Player movement */
+	
+	runSpeed = 450;
 
-	// horizontal movement
-	player.body.velocity.x = 0;
+	player.animations.play('right');
 
-	if(cursors.left.isDown){
-		// Move left
-		player.body.velocity.x = -450;
-
-		player.animations.play('left');
-
-	}else if(cursors.right.isDown){
-		// Move right
-		player.body.velocity.x = 450;
-
-		player.animations.play('right');
-	}else{
-		// Stand still
-		player.animations.stop();
-
-		player.frame = 4;
+	// Enable double jump when grounded
+	// Warning: may also count as touching when landing on sprites other than 'ground'
+	if(player.body.touching.down){
+		canDoubleJump = true;
 	}
 
+
 	/* Background */
-	farBackground.tilePosition.x -= player.body.velocity.x * 0.005;
-	nearBackground.tilePosition.x -= player.body.velocity.x * 0.009;
+	farBackground.tilePosition.x 	-= runSpeed * 0.005;
+	nearBackground.tilePosition.x 	-= runSpeed * 0.008;
+	foreground.tilePosition.x 		-= runSpeed * 0.012;
 
 
+	// testing the timer
+	// console.log("elapsed: " + game.jumpsquatTimer.ms);
 
+	console.log("elapsed: " + jumpsquatTimer.ms);
+
+	if(jumpsquatTimer.ms > 1000){
+		console.log("it's been more than a second!");
+	}
 }
 
-// Player jump from ground
+// Player jumps
 function jump() {
+	if(player.body.touching.down){
+
+		// testing short hop
+		// var timer = new Phaser.Timer(game);
+		// // var event = new TimerEvent(timer,)
+		// this.timer.add(1000, this.shout, game);
+		// this.timer.start();
+		// jumpsquatTimer = game.time.create(false);
+		// game.time.events.add(1000, shout, this);
+		// jumpsquatTimer = game.time.create(false);
+		jumpsquatTimer = new Phaser.Timer(game, false);
+		jumpsquatTimer.start();
+		console.log("elapsed: " + jumpsquatTimer.ms);
+
+		// testing. still
+		// one stop timer approach
+		var fullHopTimer = game.time.events.add( 100, fullhop, game);
+
+
+		// First jump
+		
+	} else if(canDoubleJump === true) {
+		// Double jump
+		player.body.velocity.y = -1300;
+		canDoubleJump = false;
+
+	}
+}
+
+function shorthop() {
+	if(player.body.touching.down){
+		player.body.velocity.y = -800;
+	}
+}
+
+function fullhop(){
 	if(player.body.touching.down){
 		player.body.velocity.y = -1500;
 	}
+	
+}
+
+function shout() {
+	console.log("HEY");
 }
