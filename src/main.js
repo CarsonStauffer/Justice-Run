@@ -2,7 +2,7 @@
  * 	author: Carson Stauffer
  * 	created: 5/21/2015
  */
-
+"use strict";
 var game = new Phaser.Game(800, 600, Phaser.AUTO, '', {preload: preload, create: create, update: update});
 
 function preload() {
@@ -12,8 +12,12 @@ function preload() {
 	game.load.image('big mountains', 'assets/Mountain-background.png');
 	game.load.image('small mountains', 'assets/Mountain-background-small.png');
 	game.load.image('ground', 'assets/mario ground violated.png');
+	game.load.image('mario_jumpsquat', 'assets/mario jumpsquat.png');
 	game.load.spritesheet('mario', 'assets/mario_run.png', 72, 88);
 
+	// Testing texture atlas
+	// game.load.atlas('mario atlas', 'assets/marioHash.png', 'assets/marioHash.json', null, Phaser.Loader.TEXTURE_ATLAS_JSON_HASH);
+	game.load.atlasJSONHash('mario atlas', 'assets/marioHash.png', 'assets/marioHash.json');
 }
 
 var platforms;
@@ -66,9 +70,14 @@ function create() {
 	// platform = platforms.create(400, 400, 'block');
 	// platform.body.immovable = true;
 
+	// Testing texture atlas
+	player = game.add.sprite(0,0, 'mario atlas');
+	player.animations.add('right', Phaser.Animation.generateFrameNames('mario_run_', 1, 8, '.png'), 15, true);
+
+
 
 	// create the player
-	player = game.add.sprite(32, game.world.height - 150, 'mario');
+	// player = game.add.sprite(32, game.world.height - 150, 'mario');
 	game.physics.arcade.enable(player);
 	player.body.checkCollision.up = false;
 	player.body.checkCollision.left = false;
@@ -80,7 +89,7 @@ function create() {
 	player.body.collideWorldBounds = true;
 
 	// Player animations
-	player.animations.add('right', [0,1,2,3,4,5,6,7], 24, true);
+	// player.animations.add('right', [0,1,2,3,4,5,6,7], 24, true);
 
 
 	// initialize keyboard cursors
@@ -88,7 +97,7 @@ function create() {
 
 	// Bind jumping to 'up' key
 	cursors.up.onDown.add( function() { 
-		this.jump();
+		jump();
 	});
 
 	// Shorthopping
@@ -104,6 +113,8 @@ function create() {
 	// Camera
 	game.camera.follow(player);
 
+	player.animations.play('right');
+
 
 
 
@@ -118,7 +129,8 @@ function update() {
 	
 	runSpeed = 450;
 
-	player.animations.play('right');
+	// Testing texture atlas
+	// player.animations.play('right');
 
 	// Enable double jump when grounded
 	// Warning: may also count as touching when landing on sprites other than 'ground'
@@ -185,8 +197,4 @@ function fullhop(){
 		player.body.velocity.y = -1500;
 	}
 	
-}
-
-function shout() {
-	console.log("HEY");
 }
