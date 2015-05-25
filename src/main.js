@@ -31,7 +31,17 @@ var foreground;
 
 var runSpeed;
 var canDoubleJump = false;
+var jumpsquatting = false;
 
+// Enum for different player states
+var stateEnum = Object.freeze(
+		{
+			running: {},
+			jumpsquat: {},
+			jumping: {}
+		}
+	);
+var playerState;
 
 
 
@@ -72,8 +82,9 @@ function create() {
 
 	// Testing texture atlas
 	player = game.add.sprite(0,0, 'mario atlas');
-	player.animations.add('right', Phaser.Animation.generateFrameNames('mario_run_', 1, 8, '.png'), 15, true);
-
+	player.animations.add('right', Phaser.Animation.generateFrameNames('mario_run_', 1, 8, '.png'), 24, true);
+	player.animations.add('jumpsquat', ['mario jumpsquat.png'], 1, true);
+	player.animations.add('jump', ['mario_jump.png'], 1, true);
 
 
 	// create the player
@@ -115,6 +126,8 @@ function create() {
 
 	player.animations.play('right');
 
+	// player.frameName = 'mario_run_5.png';	// <- how to set to a specific frame
+
 
 
 
@@ -128,9 +141,6 @@ function update() {
 	/* Player movement */
 	
 	runSpeed = 450;
-
-	// Testing texture atlas
-	// player.animations.play('right');
 
 	// Enable double jump when grounded
 	// Warning: may also count as touching when landing on sprites other than 'ground'
@@ -150,9 +160,11 @@ function update() {
 
 	console.log("elapsed: " + jumpsquatTimer.ms);
 
-	if(jumpsquatTimer.ms > 1000){
-		console.log("it's been more than a second!");
+
+	if(player.body.touching.down && jumpsquatting == false){
+		player.animations.play('right');
 	}
+
 }
 
 // Player jumps
@@ -167,13 +179,16 @@ function jump() {
 		// jumpsquatTimer = game.time.create(false);
 		// game.time.events.add(1000, shout, this);
 		// jumpsquatTimer = game.time.create(false);
-		jumpsquatTimer = new Phaser.Timer(game, false);
-		jumpsquatTimer.start();
-		console.log("elapsed: " + jumpsquatTimer.ms);
+		// jumpsquatTimer = new Phaser.Timer(game, false);
+		// jumpsquatTimer.start();
+		// console.log("elapsed: " + jumpsquatTimer.ms);
 
 		// testing. still
 		// one stop timer approach
-		var fullHopTimer = game.time.events.add( 100, fullhop, game);
+		var fullHopTimer = game.time.events.add( 150, fullhop, game);
+		player.animations.stop();
+		player.animations.play('jumpsquat');
+		jumpsquatting = true;
 
 
 		// First jump
@@ -189,12 +204,18 @@ function jump() {
 function shorthop() {
 	if(player.body.touching.down){
 		player.body.velocity.y = -800;
+		player.animations.stop();
+		player.animations.play('jump');
+		jumpsquatting = false;
 	}
 }
 
 function fullhop(){
 	if(player.body.touching.down){
 		player.body.velocity.y = -1500;
+		player.animations.stop();
+		player.animations.play('jump');
+		jumpsquatting = false;
 	}
 	
 }

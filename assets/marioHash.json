@@ -2,16 +2,25 @@
 
 "mario jumpsquat.png":
 {
-	"frame": {"x":2,"y":434,"w":71,"h":69},
+	"frame": {"x":2,"y":439,"w":71,"h":69},
 	"rotated": false,
 	"trimmed": true,
 	"spriteSourceSize": {"x":0,"y":19,"w":71,"h":69},
 	"sourceSize": {"w":72,"h":88},
 	"pivot": {"x":0.5,"y":0.5}
 },
+"mario_jump.png":
+{
+	"frame": {"x":2,"y":177,"w":58,"h":88},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":8,"y":0,"w":58,"h":88},
+	"sourceSize": {"w":72,"h":88},
+	"pivot": {"x":0.5,"y":0.5}
+},
 "mario_run_1.png":
 {
-	"frame": {"x":2,"y":177,"w":62,"h":83},
+	"frame": {"x":62,"y":178,"w":62,"h":83},
 	"rotated": false,
 	"trimmed": true,
 	"spriteSourceSize": {"x":3,"y":5,"w":62,"h":83},
@@ -29,7 +38,7 @@
 },
 "mario_run_3.png":
 {
-	"frame": {"x":2,"y":348,"w":59,"h":84},
+	"frame": {"x":2,"y":267,"w":59,"h":84},
 	"rotated": false,
 	"trimmed": true,
 	"spriteSourceSize": {"x":7,"y":4,"w":59,"h":84},
@@ -38,7 +47,7 @@
 },
 "mario_run_4.png":
 {
-	"frame": {"x":69,"y":2,"w":45,"h":85},
+	"frame": {"x":70,"y":91,"w":45,"h":85},
 	"rotated": false,
 	"trimmed": true,
 	"spriteSourceSize": {"x":18,"y":3,"w":45,"h":85},
@@ -47,7 +56,7 @@
 },
 "mario_run_5.png":
 {
-	"frame": {"x":66,"y":177,"w":57,"h":87},
+	"frame": {"x":69,"y":2,"w":57,"h":87},
 	"rotated": false,
 	"trimmed": true,
 	"spriteSourceSize": {"x":8,"y":1,"w":57,"h":87},
@@ -65,7 +74,7 @@
 },
 "mario_run_7.png":
 {
-	"frame": {"x":2,"y":262,"w":61,"h":84},
+	"frame": {"x":2,"y":353,"w":61,"h":84},
 	"rotated": false,
 	"trimmed": true,
 	"spriteSourceSize": {"x":3,"y":4,"w":61,"h":84},
@@ -74,7 +83,7 @@
 },
 "mario_run_8.png":
 {
-	"frame": {"x":63,"y":348,"w":60,"h":83},
+	"frame": {"x":63,"y":263,"w":60,"h":83},
 	"rotated": false,
 	"trimmed": true,
 	"spriteSourceSize": {"x":12,"y":5,"w":60,"h":83},
@@ -86,8 +95,8 @@
 	"version": "1.0",
 	"image": "marioHash.png",
 	"format": "RGBA4444",
-	"size": {"w":125,"h":505},
+	"size": {"w":128,"h":510},
 	"scale": "1",
-	"smartupdate": "$TexturePacker:SmartUpdate:3cb636d490e7f24f94746af5006ab364:53320d70a32abed6a186d78b88883b4a:49fb3ceaa3393f537cb9f9b870afdb23$"
+	"smartupdate": "$TexturePacker:SmartUpdate:636cbbffad7e1920cb1910741f1bd3d0:d050553c0eb6431ee4bc60da59a1b0b7:49fb3ceaa3393f537cb9f9b870afdb23$"
 }
 }
