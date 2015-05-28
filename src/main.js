@@ -97,22 +97,24 @@ function create() {
 	player.body.gravity.y = 4500;
 	player.body.collideWorldBounds = true;
 
-	// Player animations
-	// player.animations.add('right', [0,1,2,3,4,5,6,7], 24, true);
-
 
 	// initialize keyboard cursors
 	cursors = game.input.keyboard.createCursorKeys();
 
-	// Bind jumping to 'up' key
-	cursors.up.onDown.add( function() { 
-		jump();
+
+	/* Bind input handling to keyboard */
+
+	// pressing 'left'
+	cursors.left.onDown.add( function() { 
+		leftButtonPressed();
 	});
 
-	// Shorthopping
-	cursors.up.onUp.add( function() {
-		shorthop();
-	})
+	// releasing 'left'
+	cursors.left.onUp.add( function() {
+		leftButtonReleased();
+	});
+
+
 
 	// create the jumpsquat timer for enabling short hops and full hops
 	// jumpsquatTimer = new Phaser.Timer(game, false);
@@ -120,9 +122,9 @@ function create() {
 	
 
 	// Camera
+	// necessary?
 	game.camera.follow(player);
 
-	// player.animations.play('right');
 
 	// player.frameName = 'mario_run_5.png';	// <- how to set to a specific frame
 
@@ -171,58 +173,122 @@ function update() {
 function updatePlayerAnimation(){
 
 	switch(playerState){
+
 		case stateEnum.RUNNING:
 			player.animations.play('run');
 			break;
+
 		case stateEnum.JUMPSQUAT:
 			player.animations.play('jumpsquat');
 			break;
+
 		case stateEnum.JUMPING:
 			player.animations.play('jump');
 			break;
+
 		default:
 			console.log("error: no animation for player state: " + playerState );
 			break;
 	}
 }
 
-// Player jumps
-function jump() {
-	if(player.body.touching.down){
-
-		// testing. still
-		// one stop timer approach
-		var fullHopTimer = game.time.events.add( 150, fullhop, game);
-		playerState = stateEnum.JUMPSQUAT;
-		// player.animations.stop();
-		// player.animations.play('jumpsquat');
 
 
-		// First jump
+/* Input Handling */
+
+function leftButtonPressed(){
+	switch(playerState){
+
+		case stateEnum.RUNNING:
+			jumpsquat();
+			break;
+
+		case stateEnum.JUMPING:
+			doubleJump();
+			break;
+
+		default:
+			// do nothing
+			break;
+	}
+}
+
+function leftButtonReleased(){
+	switch(playerState){
 		
-	} else if(canDoubleJump === true) {
-		// Double jump
+		case stateEnum.JUMPSQUAT:
+			shorthop();
+			break;
+	}
+}
+
+function rightButtonPressed(){
+
+}
+
+function rightButtonReleased(){
+
+}
+
+
+
+
+// use 'onEnterJumpsquat'?
+function jumpsquat(){
+	playerState = stateEnum.JUMPSQUAT;
+
+	// execute a full hop if the timer runs out
+	var fullHopTimer = game.time.events.add( 150, fullhop, game);
+}
+
+// Double jump if player hasn't already
+function doubleJump(){
+	if(canDoubleJump === true){
 		player.body.velocity.y = -1300;
 		canDoubleJump = false;
-
 	}
 }
 
+// Immediately perform a shorthop
 function shorthop() {
-	if(player.body.touching.down){
-		player.body.velocity.y = -800;
-		playerState = stateEnum.JUMPING;
-		// player.animations.stop();
-		// player.animations.play('jump');
-	}
+
+	player.body.velocity.y = -800;
+	playerState = stateEnum.JUMPING;
+
 }
 
+// Full hop if player didn't short hop
 function fullhop(){
-	if(player.body.touching.down){
+
+	// Check that the player is still in jumpsquat (he didn't short hop)
+	if(playerState === stateEnum.JUMPSQUAT){
 		player.body.velocity.y = -1500;
 		playerState = stateEnum.JUMPING;
-		// player.animations.stop();
-		// player.animations.play('jump');
-	}
-	
+	}	
 }
+
+/* **** outdated functions ******/
+
+// Player jumps
+// function jump() {
+// 	if(player.body.touching.down){
+
+// 		// testing. still
+// 		// one stop timer approach
+// 		var fullHopTimer = game.time.events.add( 150, fullhop, game);
+// 		playerState = stateEnum.JUMPSQUAT;
+// 		// player.animations.stop();
+// 		// player.animations.play('jumpsquat');
+
+
+// 		// First jump
+		
+// 	} else if(canDoubleJump === true) {
+// 		// Double jump
+// 		player.body.velocity.y = -1300;
+// 		canDoubleJump = false;
+
+// 	}
+// }
+
+
