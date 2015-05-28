@@ -31,14 +31,13 @@ var foreground;
 
 var runSpeed;
 var canDoubleJump = false;
-var jumpsquatting = false;
 
 // Enum for different player states
 var stateEnum = Object.freeze(
 		{
-			running: {},
-			jumpsquat: {},
-			jumping: {}
+			RUNNING: {},
+			JUMPSQUAT: {},
+			JUMPING: {}
 		}
 	);
 var playerState;
@@ -82,13 +81,12 @@ function create() {
 
 	// Testing texture atlas
 	player = game.add.sprite(0,0, 'mario atlas');
-	player.animations.add('right', Phaser.Animation.generateFrameNames('mario_run_', 1, 8, '.png'), 24, true);
+	player.animations.add('run', Phaser.Animation.generateFrameNames('mario_run_', 1, 8, '.png'), 24, true);
 	player.animations.add('jumpsquat', ['mario jumpsquat.png'], 1, true);
 	player.animations.add('jump', ['mario_jump.png'], 1, true);
 
 
 	// create the player
-	// player = game.add.sprite(32, game.world.height - 150, 'mario');
 	game.physics.arcade.enable(player);
 	player.body.checkCollision.up = false;
 	player.body.checkCollision.left = false;
@@ -124,11 +122,11 @@ function create() {
 	// Camera
 	game.camera.follow(player);
 
-	player.animations.play('right');
+	// player.animations.play('right');
 
 	// player.frameName = 'mario_run_5.png';	// <- how to set to a specific frame
 
-
+	playerState = stateEnum.RUNNING;
 
 
 }
@@ -161,34 +159,43 @@ function update() {
 	console.log("elapsed: " + jumpsquatTimer.ms);
 
 
-	if(player.body.touching.down && jumpsquatting == false){
-		player.animations.play('right');
+	if(player.body.touching.down && playerState != stateEnum.JUMPSQUAT){
+		// player.animations.play('right');
+		playerState = stateEnum.RUNNING;
 	}
 
+	updatePlayerAnimation();
+}
+
+// Set the player's animation based on his state
+function updatePlayerAnimation(){
+
+	switch(playerState){
+		case stateEnum.RUNNING:
+			player.animations.play('run');
+			break;
+		case stateEnum.JUMPSQUAT:
+			player.animations.play('jumpsquat');
+			break;
+		case stateEnum.JUMPING:
+			player.animations.play('jump');
+			break;
+		default:
+			console.log("error: no animation for player state: " + playerState );
+			break;
+	}
 }
 
 // Player jumps
 function jump() {
 	if(player.body.touching.down){
 
-		// testing short hop
-		// var timer = new Phaser.Timer(game);
-		// // var event = new TimerEvent(timer,)
-		// this.timer.add(1000, this.shout, game);
-		// this.timer.start();
-		// jumpsquatTimer = game.time.create(false);
-		// game.time.events.add(1000, shout, this);
-		// jumpsquatTimer = game.time.create(false);
-		// jumpsquatTimer = new Phaser.Timer(game, false);
-		// jumpsquatTimer.start();
-		// console.log("elapsed: " + jumpsquatTimer.ms);
-
 		// testing. still
 		// one stop timer approach
 		var fullHopTimer = game.time.events.add( 150, fullhop, game);
-		player.animations.stop();
-		player.animations.play('jumpsquat');
-		jumpsquatting = true;
+		playerState = stateEnum.JUMPSQUAT;
+		// player.animations.stop();
+		// player.animations.play('jumpsquat');
 
 
 		// First jump
@@ -204,18 +211,18 @@ function jump() {
 function shorthop() {
 	if(player.body.touching.down){
 		player.body.velocity.y = -800;
-		player.animations.stop();
-		player.animations.play('jump');
-		jumpsquatting = false;
+		playerState = stateEnum.JUMPING;
+		// player.animations.stop();
+		// player.animations.play('jump');
 	}
 }
 
 function fullhop(){
 	if(player.body.touching.down){
 		player.body.velocity.y = -1500;
-		player.animations.stop();
-		player.animations.play('jump');
-		jumpsquatting = false;
+		playerState = stateEnum.JUMPING;
+		// player.animations.stop();
+		// player.animations.play('jump');
 	}
 	
 }
