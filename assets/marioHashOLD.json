@@ -2,7 +2,7 @@
 
 "mario jumpsquat.png":
 {
-	"frame": {"x":626,"y":2,"w":71,"h":69},
+	"frame": {"x":2,"y":439,"w":71,"h":69},
 	"rotated": false,
 	"trimmed": true,
 	"spriteSourceSize": {"x":0,"y":19,"w":71,"h":69},
@@ -11,25 +11,16 @@
 },
 "mario_jump.png":
 {
-	"frame": {"x":2,"y":2,"w":58,"h":88},
+	"frame": {"x":2,"y":177,"w":58,"h":88},
 	"rotated": false,
 	"trimmed": true,
 	"spriteSourceSize": {"x":8,"y":0,"w":58,"h":88},
 	"sourceSize": {"w":72,"h":88},
 	"pivot": {"x":0.5,"y":0.5}
 },
-"mario_kick.png":
-{
-	"frame": {"x":427,"y":2,"w":71,"h":83},
-	"rotated": false,
-	"trimmed": true,
-	"spriteSourceSize": {"x":0,"y":2,"w":71,"h":83},
-	"sourceSize": {"w":72,"h":88},
-	"pivot": {"x":0.5,"y":0.5}
-},
 "mario_run_1.png":
 {
-	"frame": {"x":500,"y":2,"w":62,"h":83},
+	"frame": {"x":62,"y":178,"w":62,"h":83},
 	"rotated": false,
 	"trimmed": true,
 	"spriteSourceSize": {"x":3,"y":5,"w":62,"h":83},
@@ -38,7 +29,7 @@
 },
 "mario_run_2.png":
 {
-	"frame": {"x":235,"y":2,"w":66,"h":84},
+	"frame": {"x":2,"y":91,"w":66,"h":84},
 	"rotated": false,
 	"trimmed": true,
 	"spriteSourceSize": {"x":2,"y":4,"w":66,"h":84},
@@ -47,7 +38,7 @@
 },
 "mario_run_3.png":
 {
-	"frame": {"x":366,"y":2,"w":59,"h":84},
+	"frame": {"x":2,"y":267,"w":59,"h":84},
 	"rotated": false,
 	"trimmed": true,
 	"spriteSourceSize": {"x":7,"y":4,"w":59,"h":84},
@@ -56,7 +47,7 @@
 },
 "mario_run_4.png":
 {
-	"frame": {"x":188,"y":2,"w":45,"h":85},
+	"frame": {"x":70,"y":91,"w":45,"h":85},
 	"rotated": false,
 	"trimmed": true,
 	"spriteSourceSize": {"x":18,"y":3,"w":45,"h":85},
@@ -65,7 +56,7 @@
 },
 "mario_run_5.png":
 {
-	"frame": {"x":129,"y":2,"w":57,"h":87},
+	"frame": {"x":69,"y":2,"w":57,"h":87},
 	"rotated": false,
 	"trimmed": true,
 	"spriteSourceSize": {"x":8,"y":1,"w":57,"h":87},
@@ -74,7 +65,7 @@
 },
 "mario_run_6.png":
 {
-	"frame": {"x":62,"y":2,"w":65,"h":87},
+	"frame": {"x":2,"y":2,"w":65,"h":87},
 	"rotated": false,
 	"trimmed": true,
 	"spriteSourceSize": {"x":0,"y":1,"w":65,"h":87},
@@ -83,7 +74,7 @@
 },
 "mario_run_7.png":
 {
-	"frame": {"x":303,"y":2,"w":61,"h":84},
+	"frame": {"x":2,"y":353,"w":61,"h":84},
 	"rotated": false,
 	"trimmed": true,
 	"spriteSourceSize": {"x":3,"y":4,"w":61,"h":84},
@@ -92,7 +83,7 @@
 },
 "mario_run_8.png":
 {
-	"frame": {"x":564,"y":2,"w":60,"h":83},
+	"frame": {"x":63,"y":263,"w":60,"h":83},
 	"rotated": false,
 	"trimmed": true,
 	"spriteSourceSize": {"x":12,"y":5,"w":60,"h":83},
@@ -104,8 +95,8 @@
 	"version": "1.0",
 	"image": "marioHash.png",
 	"format": "RGBA4444",
-	"size": {"w":699,"h":92},
+	"size": {"w":128,"h":510},
 	"scale": "1",
-	"smartupdate": "$TexturePacker:SmartUpdate:d14c08fd317a9d3ce034e824d37a1e13:b27e6c84c5d733e7deabd40d6cf44df8:49fb3ceaa3393f537cb9f9b870afdb23$"
+	"smartupdate": "$TexturePacker:SmartUpdate:636cbbffad7e1920cb1910741f1bd3d0:d050553c0eb6431ee4bc60da59a1b0b7:49fb3ceaa3393f537cb9f9b870afdb23$"
 }
 }
