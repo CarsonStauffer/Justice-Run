@@ -7,8 +7,8 @@
 // Phaser.AUTO = use webGL or canvas
 // Phaser.CANVAS = use canvas only
 // 		use canvas for debugging; use auto for release
-var game = new Phaser.Game(800, 600, Phaser.AUTO, '', {preload: preload, create: create, update: update, render: render});
-// var game = new Phaser.Game(800, 600, Phaser.CANVAS, '', {preload: preload, create: create, update: update, render: render});
+// var game = new Phaser.Game(800, 600, Phaser.AUTO, '', {preload: preload, create: create, update: update, render: render});
+var game = new Phaser.Game(800, 600, Phaser.CANVAS, '', {preload: preload, create: create, update: update, render: render});
 
 
 // function loadUpdate()	// <- use for a progress bar some day
@@ -20,18 +20,20 @@ function preload() {
 	game.load.image('big mountains', 'assets/Mountain-background.png');
 	game.load.image('small mountains', 'assets/Mountain-background-small.png');
 	game.load.image('ground', 'assets/mario ground violated.png');
-	// game.load.image('mario_jumpsquat', 'assets/mario jumpsquat.png');
+
+	// testing the enemy
+	game.load.spritesheet('enemy', 'assets/test_enemy.png', 32, 48);
+
 	// game.load.spritesheet('mario', 'assets/mario_run.png', 72, 88);
 
-	// Testing texture atlas
 	// game.load.atlas('mario atlas', 'assets/marioHash.png', 'assets/marioHash.json', null, Phaser.Loader.TEXTURE_ATLAS_JSON_HASH);
 	game.load.atlasJSONHash('mario atlas', 'assets/marioHash.png', 'assets/marioHash.json');
 }
 
 var platforms;
 var player;
+var enemy;
 var cursors;
-var jumpsquatTimer;
 
 var farBackground;
 var nearBackground;
@@ -52,7 +54,8 @@ var stateEnum = Object.freeze(
 var playerState;
 
 // testing: hitboxes
-var kickHitbox;
+var testHitbox;
+
 
 
 function create() {
@@ -77,8 +80,10 @@ function create() {
 	platforms.enableBody = true;
 
 
-	// Testing the attack hitboxes
-	// kickHitbox = game.add.sprite(0,0);
+
+
+
+
 
 
 	// Create the foreground
@@ -118,6 +123,27 @@ function create() {
 	player.body.collideWorldBounds = true;
 
 
+	// Testing the attack hitboxes
+	testHitbox = game.add.sprite(player.width,player.height/3*2, null);
+	game.physics.arcade.enable(testHitbox);
+	testHitbox.anchor.set(0.5);
+	player.addChild(testHitbox);
+	// player.testHitbox = game.add.sprite(0,0,null);
+	// player.addChild(player.testHitbox);
+	// game.physics.arcade.enable(player.testHitbox);
+	// player.testHitbox.anchor.set(0.5);
+
+
+
+	// testing enemy
+	enemy = game.add.sprite(game.world.width - 100, 0, 'enemy');
+	game.physics.arcade.enable(enemy);
+	enemy.body.gravity.y = 100;
+	enemy.animations.add('run left', [0,1,2,3], 8, true);
+	enemy.animations.play('run left');
+	enemy.hitstun = false;
+
+
 	// initialize keyboard cursors
 	cursors = game.input.keyboard.createCursorKeys();
 
@@ -144,11 +170,6 @@ function create() {
 		rightButtonReleased();
 	});
 
-
-
-	// create the jumpsquat timer for enabling short hops and full hops
-	// jumpsquatTimer = new Phaser.Timer(game, false);
-	jumpsquatTimer = new Phaser.Timer(game, false);
 	
 
 	// Camera
@@ -165,12 +186,16 @@ function create() {
 
 function update() {
 
-	// Collision for player and the terrain
+	// Collision check
 	game.physics.arcade.collide(player, platforms);
+	game.physics.arcade.collide(enemy, platforms);
 
 	/* Player movement */
 	
 	runSpeed = 350;
+
+	updateEnemy();
+
 
 	// Enable double jump when grounded
 	// Warning: may also count as touching when landing on sprites other than 'ground'
@@ -184,11 +209,6 @@ function update() {
 	nearBackground.tilePosition.x 	-= runSpeed * 0.003;
 	foreground.tilePosition.x 		-= runSpeed * 0.012;
 
-
-	// testing the timer
-	// console.log("elapsed: " + game.jumpsquatTimer.ms);
-
-	// console.log("elapsed: " + jumpsquatTimer.ms);
 
 
 	if(player.body.touching.down && playerState != stateEnum.JUMPSQUAT){
@@ -219,7 +239,6 @@ function updatePlayerAnimation(){
 
 		case stateEnum.ATTACKING:
 			player.animations.play('kick');
-			console.log("playing kick animation");
 			break;
 
 		default:
@@ -228,6 +247,31 @@ function updatePlayerAnimation(){
 	}
 
 	// player.animations.play('kick');
+}
+
+/* Enemy (testing currently) */
+function updateEnemy(){
+
+	// wrap around the screen horizontally
+	if(enemy.body.x < 0 - enemy.body.width){
+		enemy.body.x = game.world.width;
+	}
+
+	// set velocity
+	// enemy.body.x = enemy.body.x - 2;
+
+	if(enemy.hitstun === false){
+		enemy.body.velocity.x = -150;
+	}
+	
+
+	// check if colliding with hitbox
+	if( game.physics.arcade.intersects(testHitbox.body, enemy.body) && playerState == stateEnum.ATTACKING){
+		console.log("HIT!");
+		// launch enemy
+		enemy.hitstun = true;
+		enemy.body.velocity.x = 200;
+	}
 }
 
 
@@ -261,7 +305,19 @@ function leftButtonReleased(){
 }
 
 function rightButtonPressed(){
-	kick();
+
+	switch(playerState){
+
+		case(stateEnum.JUMPING):
+			kick();
+			break;
+
+		default:
+			// do nothing
+			break;
+	}
+	
+
 }
 
 function rightButtonReleased(){
@@ -272,7 +328,6 @@ function rightButtonReleased(){
 
 // testing an attack
 function kick(){
-	console.log("entering attacking state");
 	playerState = stateEnum.ATTACKING;
 }
 
@@ -315,7 +370,9 @@ function fullhop(){
 }
 
 function render(){
-	// game.debug.body(player);
+	game.debug.body(player);
+	game.debug.body(testHitbox);
+	game.debug.body(enemy);
 }
 
 /* **** outdated functions ******/
