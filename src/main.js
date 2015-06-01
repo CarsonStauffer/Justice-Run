@@ -157,6 +157,10 @@ function create() {
 	var kickHitbox = hitboxes.create(0, 0, null);
 	kickHitbox.body.setSize(50, 50, player.width, player.height * 0.6);
 	kickHitbox.name = "kick";
+	kickHitbox.damage = 100;
+	kickHitbox.knockbackDir = 1.0;
+	kickHitbox.knockbackBase = 200;
+	kickHitbox.knockbackScaling = 1.0;
 	kickHitbox.anchor.set(0.5);
 
 
@@ -168,6 +172,8 @@ function create() {
 	for(var i = 0; i < 10; i++){
 		enemies.create(game.world.randomX + 300, game.world.randomY / 2, 'enemy');
 		enemies.children[i].hitstun = false;
+		enemies.children[i].anchor.set(0.5);
+
 	}
 	enemies.setAll('body.gravity.y', 100);
 
@@ -241,10 +247,28 @@ function onEnemyKick(hitbox, enemy){
 	//		use enemy health
 	//		freeze frames
 	//		timer for knockback/hitstun (or animation.onComplete?)
+	// 		ensure each attack can only hit an enemy once
+
 	enemy.body.velocity.x = 0;
 	enemy.body.velocity.y = 0;
 	enemy.hitstun = true;
-	enemy.body.velocity.y = -100;
+	enemy.rotation = hitbox.knockbackDir;
+	enemy.body.velocity.x = Math.cos(hitbox.knockbackDir) * hitbox.knockbackBase * hitbox.knockbackScaling;
+	enemy.body.velocity.y = -Math.sin(hitbox.knockbackDir) * hitbox.knockbackBase * hitbox.knockbackScaling;
+
+	// Temporary: reset enemy after a moment
+	var enemyResetTimer = game.time.events.add( 2000, 
+												function() {
+													enemy.body.velocity.y = 0;
+													enemy.rotation = 0;
+													enemy.hitstun = false;
+												}, 
+												game);
+
+	// enemy.body.velocity.x = 0;
+	// enemy.body.velocity.y = 0;
+	// enemy.hitstun = true;
+	// enemy.body.velocity.y = -100;
 }
 
 
@@ -261,10 +285,7 @@ function kick(){
 function enableHitbox(hitbox){
 	for(var i = 0; i < hitboxes.children.length; i++){
 		if(hitboxes.children[i].name === hitbox){
-			console.log("enabling hitbox: \"" + hitbox + "\"");
 			hitboxes.children[i].reset(0,0);
-
-
 		}
 	}
 }
@@ -277,9 +298,9 @@ function disableAllHitboxes(){
 
 
 /*********************************** States (player) ****************************************
- * 
- * 
- * 
+ * changeState()
+ * onExit functions
+ * onEnter functions
  *******************************************************************************************/
 
 function changeState(newstate){
@@ -380,14 +401,14 @@ function onExitAttacking(){
  *******************************************************************************************/
 
 
-// use 'onEnterJumpsquat'?
-function jumpsquat(){
-	// playerState = stateEnum.JUMPSQUAT;
-	changeState("JUMPSQUAT");
+// // use 'onEnterJumpsquat'?
+// function jumpsquat(){
+// 	// playerState = stateEnum.JUMPSQUAT;
+// 	changeState("JUMPSQUAT");
 
-	// attempt to execute a fullhop after a short time
-	var fullHopTimer = game.time.events.add( 150, fullhop, game);
-}
+// 	// attempt to execute a fullhop after a short time
+// 	var fullHopTimer = game.time.events.add( 150, fullhop, game);
+// }
 
 // Double jump if player hasn't already
 function doubleJump(){
@@ -530,14 +551,18 @@ function updateEnemies(){
 			enemies.children[i].body.velocity.x = -150;
 		}
 
-		
+		// Rotate during hitstun
+		else{
+			enemies.children[i].rotation = (Math.PI / 2) + Math.atan(enemies.children[i].body.velocity.y / enemies.children[i].body.velocity.x);
+			console.log("roataion: " + enemies.children[i].rotation);
+		}
 
 	}
 
 
 	// check if enemy hit by attack
 	if(playerState === stateEnum.ATTACKING){
-		game.physics.arcade.overlap(hitboxes, enemies, onEnemyKick)
+		game.physics.arcade.overlap(hitboxes, enemies, onEnemyKick);
 	}
 
 	// testing hitbox reset bug
@@ -587,6 +612,7 @@ function update() {
 	}
 
 	updatePlayerAnimation();
+
 
 }
 
