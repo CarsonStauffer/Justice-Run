@@ -23,12 +23,15 @@ function preload() {
 
 	// testing the enemy
 	game.load.spritesheet('enemy', 'assets/test_enemy.png', 32, 48);
+	game.load.spritesheet('blood splatter', 'assets/blood_splatter.png', 32, 32);
 
 	// game.load.spritesheet('mario', 'assets/mario_run.png', 72, 88);
 
 	// game.load.atlas('mario atlas', 'assets/marioHash.png', 'assets/marioHash.json', null, Phaser.Loader.TEXTURE_ATLAS_JSON_HASH);
 	game.load.atlasJSONHash('mario atlas', 'assets/marioHash.png', 'assets/marioHash.json');
 }
+
+var self = this;
 
 var platforms;
 var player;
@@ -54,10 +57,11 @@ var stateEnum = Object.freeze(
 	);
 var playerState;
 
-// testing: hitboxes
-var kickHitbox;
+// var kickHitbox;
 var hitboxes;
 
+// testing hitbox reset bug
+// var dude;
 
 function create() {
 
@@ -129,8 +133,17 @@ function create() {
 	hitboxes.enableBody = true;
 	player.addChild(hitboxes);
 
-	
-	kickHitbox = hitboxes.create(player.width, 0.6 * player.height, null);
+	// testing creating a hitbox without needing a global variable
+	// ...it works!
+	// var transientHitbox = hitboxes.create(0, 0, null);
+	// transientHitbox.body.setSize(180, 45, player.width, 0);
+	// transientHitbox.name = "gay";
+	// transientHitbox.anchor.set(0.5);
+
+
+	var kickHitbox = hitboxes.create(0, 0, null);
+	kickHitbox.body.setSize(50, 50, player.width, player.height * 0.6);
+	kickHitbox.name = "kick";
 	kickHitbox.anchor.set(0.5);
 
 
@@ -145,7 +158,9 @@ function create() {
 	}
 	enemies.setAll('body.gravity.y', 100);
 
-
+	// testing hitbox reset bug
+	// dude = game.add.sprite(30,30, 'enemy');
+	// game.physics.arcade.enable(dude);
 
 
 	// enemy = game.add.sprite(game.world.width - 100, 0, 'enemy');
@@ -193,7 +208,6 @@ function create() {
 
 	playerState = stateEnum.RUNNING;
 
-
 }
 
 function update() {
@@ -231,6 +245,7 @@ function update() {
 	}
 
 	updatePlayerAnimation();
+
 }
 
 // Set the player's animation based on his state
@@ -286,12 +301,27 @@ function updateEnemies(){
 	if(playerState === stateEnum.ATTACKING){
 		game.physics.arcade.overlap(hitboxes, enemies, onEnemyKick)
 	}
+
+	// testing hitbox reset bug
+	// game.physics.arcade.overlap(hitboxes, dude, function(){
+	// 	console.log("Hit! :(");
+	// });
+	// game.physics.arcade.overlap(hitboxes, enemies, function(){
+	// 	console.log("FUCKING CHRIST :(");
+	// });
 	
 
 }
 
+
 // Temporary: demonstrate enemy hit by attack
 function onEnemyKick(hitbox, enemy){
+
+	// todo:
+	//		get hitbox info
+	//		use enemy health
+	//		freeze frames
+	//		timer for knockback/hitstun (or animation.onComplete?)
 	enemy.body.velocity.x = 0;
 	enemy.body.velocity.y = 0;
 	enemy.hitstun = true;
@@ -300,32 +330,34 @@ function onEnemyKick(hitbox, enemy){
 
 
 
-/* Enemy (testing currently) */
-function updateEnemy(){
+// /* Enemy (testing currently) */
+// function updateEnemy(){
 
-	// wrap around the screen horizontally
-	if(enemy.body.x < 0 - enemy.body.width){
-		enemy.body.x = game.world.width;
-	}
+// 	// wrap around the screen horizontally
+// 	if(enemy.body.x < 0 - enemy.body.width){
+// 		enemy.body.x = game.world.width;
+// 	}
 
-	// set velocity
-	// enemy.body.x = enemy.body.x - 2;
+// 	// set velocity
+// 	// enemy.body.x = enemy.body.x - 2;
 
-	if(enemy.hitstun === false){
-		enemy.body.velocity.x = -150;
-	}
+// 	if(enemy.hitstun === false){
+// 		enemy.body.velocity.x = -150;
+// 	}
 	
 
-	// check if colliding with hitbox
-	if( game.physics.arcade.intersects(kickHitbox.body, enemy.body) && playerState == stateEnum.ATTACKING){
-		console.log("HIT!");
-		// launch enemy
-		enemy.hitstun = true;
-		enemy.body.velocity.x = 200;
-	}
+// 	// check if colliding with hitbox
+// 	if( game.physics.arcade.intersects(kickHitbox.body, enemy.body) && playerState == stateEnum.ATTACKING){
+// 		console.log("HIT!");
+// 		// launch enemy
+// 		enemy.hitstun = true;
+// 		enemy.body.velocity.x = 200;
+// 	}
+// }
+
+function tempDelHitbox(){
+	hitboxes.children[0].exists = false;
 }
-
-
 
 /* Input Handling */
 
@@ -333,6 +365,11 @@ function leftButtonPressed(){
 	switch(playerState){
 
 		case stateEnum.RUNNING:
+
+			// REMOVE THIS: testing hitbox killing
+			hitboxes.forEach(tempDelHitbox, self);
+
+
 			jumpsquat();
 			break;
 
@@ -376,13 +413,32 @@ function rightButtonReleased(){
 }
 
 
-
-// testing an attack
+// a kick attack
 function kick(){
 	playerState = stateEnum.ATTACKING;
+
+	// REMOVE THIS: testing hitboxes
+	enableHitbox("kick");
 }
 
 
+// testing creating/destroying hitboxes
+function enableHitbox(hitbox){
+	for(var i = 0; i < hitboxes.children.length; i++){
+		if(hitboxes.children[i].name === hitbox){
+			console.log("enabling hitbox: \"" + hitbox + "\"");
+			hitboxes.children[i].reset(0,0);
+
+
+		}
+	}
+}
+
+function disableAllHitboxes(){
+	hitboxes.forEachExists(function(hitbox) {
+		hitbox.kill();
+	});
+}
 
 
 
@@ -390,12 +446,23 @@ function kick(){
 function jumpsquat(){
 	playerState = stateEnum.JUMPSQUAT;
 
-	// execute a full hop if the timer runs out
+	// attempt to execute a fullhop after a short time
 	var fullHopTimer = game.time.events.add( 150, fullhop, game);
 }
 
 // Double jump if player hasn't already
 function doubleJump(){
+
+	// REMOVE THIS: testing hitbox killing
+	// hitboxes.children[0].exists = true;
+	// hitboxes.children[0].reset(0,0);
+	// hitboxes.children[0].body.x = 500;	
+
+	//testing hitbox reset bug
+	// hitboxes.children[0].exists = true;
+	// hitboxes.children[0].body.setSize(50, 50, player.width, player.height * 0.6);
+
+
 	if(canDoubleJump === true){
 		player.body.velocity.y = -1300;
 		canDoubleJump = false;
@@ -422,10 +489,16 @@ function fullhop(){
 
 function render(){
 	game.debug.body(player);
-	game.debug.body(kickHitbox);
-	// game.debug.body(enemy);
+	hitboxes.forEachExists(renderGroup, this);
+	enemies.forEachAlive(renderGroup, this);
+
+	// testing hitbox reset bug
+	 // game.debug.body(dude);
 }
 
+function renderGroup(member){
+	game.debug.body(member);
+}
 /* **** outdated functions ******/
 
 // Player jumps
