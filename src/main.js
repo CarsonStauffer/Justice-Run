@@ -13,23 +13,13 @@ var game = new Phaser.Game(800, 600, Phaser.CANVAS, '', {preload: preload, creat
 
 // function loadUpdate()	// <- use for a progress bar some day
 
-function preload() {
-	game.load.image('block', 'assets/block.png');
-	game.load.image('sky', 'assets/sky.png');
-	game.load.image('star', 'assets/star.png');
-	game.load.image('big mountains', 'assets/Mountain-background.png');
-	game.load.image('small mountains', 'assets/Mountain-background-small.png');
-	game.load.image('ground', 'assets/mario ground violated.png');
 
-	// testing the enemy
-	game.load.spritesheet('enemy', 'assets/test_enemy.png', 32, 48);
-	game.load.spritesheet('blood splatter', 'assets/blood_splatter.png', 32, 32);
+/*********************************** Global Variables ***************************************
+ * 
+ * 
+ * 
+ *******************************************************************************************/
 
-	// game.load.spritesheet('mario', 'assets/mario_run.png', 72, 88);
-
-	// game.load.atlas('mario atlas', 'assets/marioHash.png', 'assets/marioHash.json', null, Phaser.Loader.TEXTURE_ATLAS_JSON_HASH);
-	game.load.atlasJSONHash('mario atlas', 'assets/marioHash.png', 'assets/marioHash.json');
-}
 
 var self = this;
 
@@ -63,6 +53,35 @@ var hitboxes;
 // testing hitbox reset bug
 // var dude;
 
+
+
+/*********************************** Init Functions *****************************************
+ * preload()
+ * create()
+ * 
+ *******************************************************************************************/
+
+
+// Preload all required assets
+function preload() {
+	game.load.image('block', 'assets/block.png');
+	game.load.image('sky', 'assets/sky.png');
+	game.load.image('star', 'assets/star.png');
+	game.load.image('big mountains', 'assets/Mountain-background.png');
+	game.load.image('small mountains', 'assets/Mountain-background-small.png');
+	game.load.image('ground', 'assets/mario ground violated.png');
+
+	// testing the enemy
+	game.load.spritesheet('enemy', 'assets/test_enemy.png', 32, 48);
+	game.load.spritesheet('blood splatter', 'assets/blood_splatter.png', 32, 32);
+
+	// game.load.spritesheet('mario', 'assets/mario_run.png', 72, 88);
+
+	// game.load.atlas('mario atlas', 'assets/marioHash.png', 'assets/marioHash.json', null, Phaser.Loader.TEXTURE_ATLAS_JSON_HASH);
+	game.load.atlasJSONHash('mario atlas', 'assets/marioHash.png', 'assets/marioHash.json');
+}
+
+// Set up the game world
 function create() {
 
 	// Set world size
@@ -83,12 +102,6 @@ function create() {
 
 	// add the platforms and ground to physics
 	platforms.enableBody = true;
-
-
-
-
-
-
 
 
 	// Create the foreground
@@ -210,43 +223,171 @@ function create() {
 
 }
 
-function update() {
-
-	// Collision check
-	game.physics.arcade.collide(player, platforms);
-	game.physics.arcade.collide(enemies, platforms);
-
-	/* Player movement */
-	
-	runSpeed = 350;
-
-	// updateEnemy();
-	updateEnemies();
 
 
-	// Enable double jump when grounded
-	// Warning: may also count as touching when landing on sprites other than 'ground'
-	if(player.body.touching.down){
-		canDoubleJump = true;
+/*************************************** Attacks ********************************************
+ * 
+ * 
+ * 
+ *******************************************************************************************/
+
+
+// Temporary: demonstrate enemy hit by attack
+function onEnemyKick(hitbox, enemy){
+
+	// todo:
+	//		get hitbox info
+	//		use enemy health
+	//		freeze frames
+	//		timer for knockback/hitstun (or animation.onComplete?)
+	enemy.body.velocity.x = 0;
+	enemy.body.velocity.y = 0;
+	enemy.hitstun = true;
+	enemy.body.velocity.y = -100;
+}
+
+
+// a kick attack
+function kick(){
+	playerState = stateEnum.ATTACKING;
+
+	enableHitbox("kick");
+}
+
+
+// enable a hitbox by name
+function enableHitbox(hitbox){
+	for(var i = 0; i < hitboxes.children.length; i++){
+		if(hitboxes.children[i].name === hitbox){
+			console.log("enabling hitbox: \"" + hitbox + "\"");
+			hitboxes.children[i].reset(0,0);
+
+
+		}
 	}
+}
+
+function disableAllHitboxes(){
+	hitboxes.forEachExists(function(hitbox) {
+		hitbox.kill();
+	});
+}
 
 
-	/* Background */
-	farBackground.tilePosition.x 	-= runSpeed * 0.001;
-	nearBackground.tilePosition.x 	-= runSpeed * 0.003;
-	foreground.tilePosition.x 		-= runSpeed * 0.012;
+
+/*********************************** Jumping (player) ***************************************
+ * jumpsquat()
+ * doubleJump()
+ * shorthop()
+ * fullhop()
+ *******************************************************************************************/
 
 
+// use 'onEnterJumpsquat'?
+function jumpsquat(){
+	playerState = stateEnum.JUMPSQUAT;
 
-	if(player.body.touching.down && playerState != stateEnum.JUMPSQUAT){
-		// player.animations.play('right');
-		playerState = stateEnum.RUNNING;
-		// player.animations.play('kick');
+	// attempt to execute a fullhop after a short time
+	var fullHopTimer = game.time.events.add( 150, fullhop, game);
+}
+
+// Double jump if player hasn't already
+function doubleJump(){
+
+	if(canDoubleJump === true){
+		player.body.velocity.y = -1300;
+		canDoubleJump = false;
 	}
+}
 
-	updatePlayerAnimation();
+// Immediately perform a shorthop
+function shorthop() {
+
+	player.body.velocity.y = -800;
+	playerState = stateEnum.JUMPING;
 
 }
+
+// Full hop if player didn't short hop
+function fullhop(){
+
+	// Check that the player is still in jumpsquat (he didn't short hop)
+	if(playerState === stateEnum.JUMPSQUAT){
+		player.body.velocity.y = -1500;
+		playerState = stateEnum.JUMPING;
+	}	
+}
+
+
+
+/***************************************** Input ********************************************
+ * leftButtonPressed()
+ * leftButtonReleased()
+ * rightButtonPressed()
+ * rightButtonReleased()
+ *******************************************************************************************/
+
+
+function leftButtonPressed(){
+	switch(playerState){
+
+		case stateEnum.RUNNING:
+
+			// REMOVE THIS: testing hitbox killing
+			disableAllHitboxes();
+
+
+			jumpsquat();
+			break;
+
+		case stateEnum.JUMPING:
+			doubleJump();
+			break;
+
+		default:
+			// do nothing
+			break;
+	}
+}
+
+function leftButtonReleased(){
+	switch(playerState){
+
+		case stateEnum.JUMPSQUAT:
+			shorthop();
+			break;
+	}
+}
+
+function rightButtonPressed(){
+
+	switch(playerState){
+
+		case(stateEnum.JUMPING):
+			kick();
+			break;
+
+		default:
+			// do nothing
+			break;
+	}
+	
+
+}
+
+function rightButtonReleased(){
+
+}
+
+
+/*********************************** Main Game Loop *****************************************
+ * updatePlayerAnimation()
+ * updateEnemies()
+ * update()
+ * render()
+ * renderGroup()
+ *******************************************************************************************/
+
 
 // Set the player's animation based on his state
 function updatePlayerAnimation(){
@@ -313,178 +454,42 @@ function updateEnemies(){
 
 }
 
+function update() {
 
-// Temporary: demonstrate enemy hit by attack
-function onEnemyKick(hitbox, enemy){
+	// Collision check
+	game.physics.arcade.collide(player, platforms);
+	game.physics.arcade.collide(enemies, platforms);
 
-	// todo:
-	//		get hitbox info
-	//		use enemy health
-	//		freeze frames
-	//		timer for knockback/hitstun (or animation.onComplete?)
-	enemy.body.velocity.x = 0;
-	enemy.body.velocity.y = 0;
-	enemy.hitstun = true;
-	enemy.body.velocity.y = -100;
-}
-
-
-
-// /* Enemy (testing currently) */
-// function updateEnemy(){
-
-// 	// wrap around the screen horizontally
-// 	if(enemy.body.x < 0 - enemy.body.width){
-// 		enemy.body.x = game.world.width;
-// 	}
-
-// 	// set velocity
-// 	// enemy.body.x = enemy.body.x - 2;
-
-// 	if(enemy.hitstun === false){
-// 		enemy.body.velocity.x = -150;
-// 	}
+	/* Player movement */
 	
+	runSpeed = 350;
 
-// 	// check if colliding with hitbox
-// 	if( game.physics.arcade.intersects(kickHitbox.body, enemy.body) && playerState == stateEnum.ATTACKING){
-// 		console.log("HIT!");
-// 		// launch enemy
-// 		enemy.hitstun = true;
-// 		enemy.body.velocity.x = 200;
-// 	}
-// }
-
-function tempDelHitbox(){
-	hitboxes.children[0].exists = false;
-}
-
-/* Input Handling */
-
-function leftButtonPressed(){
-	switch(playerState){
-
-		case stateEnum.RUNNING:
-
-			// REMOVE THIS: testing hitbox killing
-			hitboxes.forEach(tempDelHitbox, self);
+	// updateEnemy();
+	updateEnemies();
 
 
-			jumpsquat();
-			break;
-
-		case stateEnum.JUMPING:
-			doubleJump();
-			break;
-
-		default:
-			// do nothing
-			break;
+	// Enable double jump when grounded
+	// Warning: may also count as touching when landing on sprites other than 'ground'
+	if(player.body.touching.down){
+		canDoubleJump = true;
 	}
-}
 
-function leftButtonReleased(){
-	switch(playerState){
 
-		case stateEnum.JUMPSQUAT:
-			shorthop();
-			break;
+	/* Background */
+	farBackground.tilePosition.x 	-= runSpeed * 0.001;
+	nearBackground.tilePosition.x 	-= runSpeed * 0.003;
+	foreground.tilePosition.x 		-= runSpeed * 0.012;
+
+
+
+	if(player.body.touching.down && playerState != stateEnum.JUMPSQUAT){
+		// player.animations.play('right');
+		playerState = stateEnum.RUNNING;
+		// player.animations.play('kick');
 	}
-}
 
-function rightButtonPressed(){
+	updatePlayerAnimation();
 
-	switch(playerState){
-
-		case(stateEnum.JUMPING):
-			kick();
-			break;
-
-		default:
-			// do nothing
-			break;
-	}
-	
-
-}
-
-function rightButtonReleased(){
-
-}
-
-
-// a kick attack
-function kick(){
-	playerState = stateEnum.ATTACKING;
-
-	// REMOVE THIS: testing hitboxes
-	enableHitbox("kick");
-}
-
-
-// testing creating/destroying hitboxes
-function enableHitbox(hitbox){
-	for(var i = 0; i < hitboxes.children.length; i++){
-		if(hitboxes.children[i].name === hitbox){
-			console.log("enabling hitbox: \"" + hitbox + "\"");
-			hitboxes.children[i].reset(0,0);
-
-
-		}
-	}
-}
-
-function disableAllHitboxes(){
-	hitboxes.forEachExists(function(hitbox) {
-		hitbox.kill();
-	});
-}
-
-
-
-// use 'onEnterJumpsquat'?
-function jumpsquat(){
-	playerState = stateEnum.JUMPSQUAT;
-
-	// attempt to execute a fullhop after a short time
-	var fullHopTimer = game.time.events.add( 150, fullhop, game);
-}
-
-// Double jump if player hasn't already
-function doubleJump(){
-
-	// REMOVE THIS: testing hitbox killing
-	// hitboxes.children[0].exists = true;
-	// hitboxes.children[0].reset(0,0);
-	// hitboxes.children[0].body.x = 500;	
-
-	//testing hitbox reset bug
-	// hitboxes.children[0].exists = true;
-	// hitboxes.children[0].body.setSize(50, 50, player.width, player.height * 0.6);
-
-
-	if(canDoubleJump === true){
-		player.body.velocity.y = -1300;
-		canDoubleJump = false;
-	}
-}
-
-// Immediately perform a shorthop
-function shorthop() {
-
-	player.body.velocity.y = -800;
-	playerState = stateEnum.JUMPING;
-
-}
-
-// Full hop if player didn't short hop
-function fullhop(){
-
-	// Check that the player is still in jumpsquat (he didn't short hop)
-	if(playerState === stateEnum.JUMPSQUAT){
-		player.body.velocity.y = -1500;
-		playerState = stateEnum.JUMPING;
-	}	
 }
 
 function render(){
@@ -499,28 +504,6 @@ function render(){
 function renderGroup(member){
 	game.debug.body(member);
 }
-/* **** outdated functions ******/
 
-// Player jumps
-// function jump() {
-// 	if(player.body.touching.down){
-
-// 		// testing. still
-// 		// one stop timer approach
-// 		var fullHopTimer = game.time.events.add( 150, fullhop, game);
-// 		playerState = stateEnum.JUMPSQUAT;
-// 		// player.animations.stop();
-// 		// player.animations.play('jumpsquat');
-
-
-// 		// First jump
-		
-// 	} else if(canDoubleJump === true) {
-// 		// Double jump
-// 		player.body.velocity.y = -1300;
-// 		canDoubleJump = false;
-
-// 	}
-// }
 
 
