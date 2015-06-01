@@ -54,8 +54,8 @@ var stateEnum = Object.freeze(
 var playerState;
 
 // testing: hitboxes
-var testHitbox;
-
+var kickHitbox;
+var hitboxes;
 
 
 function create() {
@@ -123,15 +123,15 @@ function create() {
 	player.body.collideWorldBounds = true;
 
 
-	// Testing the attack hitboxes
-	testHitbox = game.add.sprite(player.width,player.height/3*2, null);
-	game.physics.arcade.enable(testHitbox);
-	testHitbox.anchor.set(0.5);
-	player.addChild(testHitbox);
-	// player.testHitbox = game.add.sprite(0,0,null);
-	// player.addChild(player.testHitbox);
-	// game.physics.arcade.enable(player.testHitbox);
-	// player.testHitbox.anchor.set(0.5);
+	/* Player Hitboxes */
+	// kickHitbox = game.add.sprite(player.width,player.height/3*2, null);
+	hitboxes = game.add.group();
+	hitboxes.enableBody = true;
+	player.addChild(hitboxes);
+
+	
+	kickHitbox = hitboxes.create(player.width, 0.6 * player.height, null);
+	kickHitbox.anchor.set(0.5);
 
 
 
@@ -266,7 +266,7 @@ function updateEnemy(){
 	
 
 	// check if colliding with hitbox
-	if( game.physics.arcade.intersects(testHitbox.body, enemy.body) && playerState == stateEnum.ATTACKING){
+	if( game.physics.arcade.intersects(kickHitbox.body, enemy.body) && playerState == stateEnum.ATTACKING){
 		console.log("HIT!");
 		// launch enemy
 		enemy.hitstun = true;
@@ -371,7 +371,7 @@ function fullhop(){
 
 function render(){
 	game.debug.body(player);
-	game.debug.body(testHitbox);
+	game.debug.body(kickHitbox);
 	game.debug.body(enemy);
 }
 
