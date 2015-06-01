@@ -33,6 +33,7 @@ function preload() {
 var platforms;
 var player;
 var enemy;
+var enemies;
 var cursors;
 
 var farBackground;
@@ -103,7 +104,6 @@ function create() {
 	player.animations.add('run', Phaser.Animation.generateFrameNames('mario_run_', 1, 8, '.png'), 24, true);
 	player.animations.add('jumpsquat', ['mario jumpsquat.png'], 1, true);
 	player.animations.add('jump', ['mario_jump.png'], 1, true);
-	// player.animations.add('kick', Phaser.Animation.generateFrameNames('mario_kick_', 1, 5, '.png'), 24, false);
 	player.animations.add('kick', ['mario_kick.png'], 1, true);
 
 	
@@ -136,12 +136,24 @@ function create() {
 
 
 	// testing enemy
-	enemy = game.add.sprite(game.world.width - 100, 0, 'enemy');
-	game.physics.arcade.enable(enemy);
-	enemy.body.gravity.y = 100;
-	enemy.animations.add('run left', [0,1,2,3], 8, true);
-	enemy.animations.play('run left');
-	enemy.hitstun = false;
+	enemies = game.add.group();
+	enemies.enableBody = true;
+	// enemies.createMultiple(10, 'enemy');
+	for(var i = 0; i < 10; i++){
+		enemies.create(game.world.randomX + 300, game.world.randomY / 2, 'enemy');
+		enemies.children[i].hitstun = false;
+	}
+	enemies.setAll('body.gravity.y', 100);
+
+
+
+
+	// enemy = game.add.sprite(game.world.width - 100, 0, 'enemy');
+	// game.physics.arcade.enable(enemy);
+	// enemy.body.gravity.y = 100;
+	// enemy.animations.add('run left', [0,1,2,3], 8, true);
+	// enemy.animations.play('run left');
+	// enemy.hitstun = false;
 
 
 	// initialize keyboard cursors
@@ -188,13 +200,14 @@ function update() {
 
 	// Collision check
 	game.physics.arcade.collide(player, platforms);
-	game.physics.arcade.collide(enemy, platforms);
+	game.physics.arcade.collide(enemies, platforms);
 
 	/* Player movement */
 	
 	runSpeed = 350;
 
-	updateEnemy();
+	// updateEnemy();
+	updateEnemies();
 
 
 	// Enable double jump when grounded
@@ -248,6 +261,44 @@ function updatePlayerAnimation(){
 
 	// player.animations.play('kick');
 }
+
+// testing group enemy update
+function updateEnemies(){
+
+	for(var i = 0; i < enemies.children.length; i++){
+
+		// wrap horizontally
+		if(enemies.children[i].body.x < 0 - enemies.children[i].body.width){
+			enemies.children[i].body.x = game.world.width;
+		}
+
+		// Move if not hit
+		if(enemies.children[i].hitstun === false){
+			enemies.children[i].body.velocity.x = -150;
+		}
+
+		
+
+	}
+
+
+	// check if enemy hit by attack
+	if(playerState === stateEnum.ATTACKING){
+		game.physics.arcade.overlap(hitboxes, enemies, onEnemyKick)
+	}
+	
+
+}
+
+// Temporary: demonstrate enemy hit by attack
+function onEnemyKick(hitbox, enemy){
+	enemy.body.velocity.x = 0;
+	enemy.body.velocity.y = 0;
+	enemy.hitstun = true;
+	enemy.body.velocity.y = -100;
+}
+
+
 
 /* Enemy (testing currently) */
 function updateEnemy(){
@@ -372,7 +423,7 @@ function fullhop(){
 function render(){
 	game.debug.body(player);
 	game.debug.body(kickHitbox);
-	game.debug.body(enemy);
+	// game.debug.body(enemy);
 }
 
 /* **** outdated functions ******/
