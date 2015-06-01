@@ -220,6 +220,7 @@ function create() {
 	// player.frameName = 'mario_run_5.png';	// <- how to set to a specific frame
 
 	playerState = stateEnum.RUNNING;
+	disableAllHitboxes();
 
 }
 
@@ -249,7 +250,8 @@ function onEnemyKick(hitbox, enemy){
 
 // a kick attack
 function kick(){
-	playerState = stateEnum.ATTACKING;
+	// playerState = stateEnum.ATTACKING;
+	changeState("ATTACKING");
 
 	enableHitbox("kick");
 }
@@ -274,6 +276,101 @@ function disableAllHitboxes(){
 }
 
 
+/*********************************** States (player) ****************************************
+ * 
+ * 
+ * 
+ *******************************************************************************************/
+
+function changeState(newstate){
+
+	// call onExit
+	switch(playerState){
+
+		case stateEnum.RUNNING:
+			onExitRunning();
+			break;
+		case stateEnum.JUMPING:
+			onExitJumping();
+			break;
+		case stateEnum.JUMPSQUAT:
+			onExitJumpsquat();
+			break;
+		case stateEnum.ATTACKING:
+			onExitAttacking();
+			break;
+		default:
+			console.log("error in changeState: somehow exiting a state that doesn't exist");
+			break;
+	}
+
+	// change state and call onEnter
+	newstate = newstate.toUpperCase();
+
+	switch(newstate){
+
+		case "RUNNING":
+			playerState = stateEnum.RUNNING;
+			onEnterRunning();
+			break;
+		case "JUMPING":
+			playerState = stateEnum.JUMPING;
+			onEnterJumping();
+			break;
+		case "JUMPSQUAT":
+			playerState = stateEnum.JUMPSQUAT;
+			onEnterJumpsquat();
+			break;
+		case "ATTACKING":
+			playerState = stateEnum.ATTACKING;
+			onEnterAttacking();
+			break;
+		default:
+			console.log("error in changeState: trying to change to invalid state. Ignoring.");
+			break;
+	}
+
+}
+
+// RUNNING
+function onEnterRunning(){
+
+}
+
+function onExitRunning(){
+
+}
+
+
+// JUMPING
+function onEnterJumping(){
+
+}
+
+function onExitJumping(){
+	
+}
+
+
+// JUMPSQUAT
+function onEnterJumpsquat(){
+	// attempt to execute a fullhop after a short time
+	var fullHopTimer = game.time.events.add( 150, fullhop, game);
+}
+
+function onExitJumpsquat(){
+	
+}
+
+
+// ATTACKING
+function onEnterAttacking(){
+
+}
+
+function onExitAttacking(){
+	disableAllHitboxes();
+}
 
 /*********************************** Jumping (player) ***************************************
  * jumpsquat()
@@ -285,7 +382,8 @@ function disableAllHitboxes(){
 
 // use 'onEnterJumpsquat'?
 function jumpsquat(){
-	playerState = stateEnum.JUMPSQUAT;
+	// playerState = stateEnum.JUMPSQUAT;
+	changeState("JUMPSQUAT");
 
 	// attempt to execute a fullhop after a short time
 	var fullHopTimer = game.time.events.add( 150, fullhop, game);
@@ -304,7 +402,8 @@ function doubleJump(){
 function shorthop() {
 
 	player.body.velocity.y = -800;
-	playerState = stateEnum.JUMPING;
+	// playerState = stateEnum.JUMPING;
+	changeState("JUMPING");
 
 }
 
@@ -314,7 +413,8 @@ function fullhop(){
 	// Check that the player is still in jumpsquat (he didn't short hop)
 	if(playerState === stateEnum.JUMPSQUAT){
 		player.body.velocity.y = -1500;
-		playerState = stateEnum.JUMPING;
+		// playerState = stateEnum.JUMPING;
+		changeState("JUMPING");
 	}	
 }
 
@@ -333,11 +433,8 @@ function leftButtonPressed(){
 
 		case stateEnum.RUNNING:
 
-			// REMOVE THIS: testing hitbox killing
-			disableAllHitboxes();
-
-
-			jumpsquat();
+			// jumpsquat();
+			changeState("JUMPSQUAT");
 			break;
 
 		case stateEnum.JUMPING:
@@ -484,7 +581,8 @@ function update() {
 
 	if(player.body.touching.down && playerState != stateEnum.JUMPSQUAT){
 		// player.animations.play('right');
-		playerState = stateEnum.RUNNING;
+		// playerState = stateEnum.RUNNING;
+		changeState("RUNNING");
 		// player.animations.play('kick');
 	}
 
