@@ -123,6 +123,8 @@ function create() {
 	player.animations.add('jump', ['mario_jump.png'], 1, true);
 	player.animations.add('kick', ['mario_kick.png'], 1, true);
 
+
+
 	
 
 
@@ -132,6 +134,7 @@ function create() {
 	player.body.checkCollision.up = false;
 	player.body.checkCollision.left = false;
 	player.body.checkCollision.right = false;
+	player.body.setSize(32, 72, 20, 16);
 
 	// player.body.setSize(30,45, 0,0);	// <- use this to change collision size for the player
 
@@ -158,8 +161,8 @@ function create() {
 	kickHitbox.body.setSize(50, 50, player.width, player.height * 0.6);
 	kickHitbox.name = "kick";
 	kickHitbox.damage = 100;
-	kickHitbox.knockbackDir = 1.0;
-	kickHitbox.knockbackBase = 200;
+	kickHitbox.knockbackDir = 0.5;
+	kickHitbox.knockbackBase = 1000;
 	kickHitbox.knockbackScaling = 1.0;
 	kickHitbox.anchor.set(0.5);
 
@@ -173,6 +176,7 @@ function create() {
 		enemies.create(game.world.randomX + 300, game.world.randomY / 2, 'enemy');
 		enemies.children[i].hitstun = false;
 		enemies.children[i].anchor.set(0.5);
+		// enemies.children[i].body.bounce = 1;
 
 	}
 	enemies.setAll('body.gravity.y', 100);
@@ -226,6 +230,7 @@ function create() {
 	// player.frameName = 'mario_run_5.png';	// <- how to set to a specific frame
 
 	playerState = stateEnum.RUNNING;
+	updatePlayerAnimation();
 	disableAllHitboxes();
 
 }
@@ -243,10 +248,8 @@ function create() {
 function onEnemyKick(hitbox, enemy){
 
 	// todo:
-	//		get hitbox info
 	//		use enemy health
 	//		freeze frames
-	//		timer for knockback/hitstun (or animation.onComplete?)
 	// 		ensure each attack can only hit an enemy once
 
 	enemy.body.velocity.x = 0;
@@ -257,18 +260,14 @@ function onEnemyKick(hitbox, enemy){
 	enemy.body.velocity.y = -Math.sin(hitbox.knockbackDir) * hitbox.knockbackBase * hitbox.knockbackScaling;
 
 	// Temporary: reset enemy after a moment
-	var enemyResetTimer = game.time.events.add( 2000, 
-												function() {
-													enemy.body.velocity.y = 0;
-													enemy.rotation = 0;
-													enemy.hitstun = false;
-												}, 
-												game);
+	game.time.events.add( 	500, 
+							function() {
+								enemy.body.velocity.y = 0;
+								enemy.rotation = 0;
+								enemy.hitstun = false;
+							}, 
+							game);
 
-	// enemy.body.velocity.x = 0;
-	// enemy.body.velocity.y = 0;
-	// enemy.hitstun = true;
-	// enemy.body.velocity.y = -100;
 }
 
 
@@ -278,6 +277,17 @@ function kick(){
 	changeState("ATTACKING");
 
 	enableHitbox("kick");
+	// testing ending attacks
+	game.time.events.add(500, endAttack, game);
+}
+
+// temp: end the kick attack
+		// then somehow return to correct state
+function endAttack(){
+	// If still attacking (haven't landed, been hit, etc)
+	if(playerState === stateEnum.ATTACKING){
+		changeState("JUMPING");
+	}
 }
 
 
@@ -351,11 +361,13 @@ function changeState(newstate){
 			break;
 	}
 
+	updatePlayerAnimation();
+
 }
 
 // RUNNING
 function onEnterRunning(){
-
+	canDoubleJump = true;
 }
 
 function onExitRunning(){
@@ -400,15 +412,6 @@ function onExitAttacking(){
  * fullhop()
  *******************************************************************************************/
 
-
-// // use 'onEnterJumpsquat'?
-// function jumpsquat(){
-// 	// playerState = stateEnum.JUMPSQUAT;
-// 	changeState("JUMPSQUAT");
-
-// 	// attempt to execute a fullhop after a short time
-// 	var fullHopTimer = game.time.events.add( 150, fullhop, game);
-// }
 
 // Double jump if player hasn't already
 function doubleJump(){
@@ -507,6 +510,43 @@ function rightButtonReleased(){
  *******************************************************************************************/
 
 
+// temporary: update the player based on state
+function updatePlayer(){
+
+	var grounded = false;
+
+	if(game.physics.arcade.collide(player, platforms) ){
+		grounded = true;
+	}
+
+	switch(playerState){
+
+		case stateEnum.RUNNING:
+			break;
+
+		case stateEnum.JUMPSQUAT:
+			break;
+
+		case stateEnum.JUMPING:
+			if(player.body.touching.down){
+				changeState("RUNNING");
+			}
+			break;
+
+		case stateEnum.ATTACKING:
+			if(grounded){
+				endAttack();
+			}
+			break;
+
+		default:
+			console.log("error in updatePlayer: player in invalid state");
+			break;
+	}
+
+}
+
+
 // Set the player's animation based on his state
 function updatePlayerAnimation(){
 
@@ -533,11 +573,12 @@ function updatePlayerAnimation(){
 			break;
 	}
 
-	// player.animations.play('kick');
 }
 
 // testing group enemy update
 function updateEnemies(){
+
+	game.physics.arcade.collide(enemies, platforms);
 
 	for(var i = 0; i < enemies.children.length; i++){
 
@@ -554,7 +595,6 @@ function updateEnemies(){
 		// Rotate during hitstun
 		else{
 			enemies.children[i].rotation = (Math.PI / 2) + Math.atan(enemies.children[i].body.velocity.y / enemies.children[i].body.velocity.x);
-			console.log("roataion: " + enemies.children[i].rotation);
 		}
 
 	}
@@ -578,40 +618,15 @@ function updateEnemies(){
 
 function update() {
 
-	// Collision check
-	game.physics.arcade.collide(player, platforms);
-	game.physics.arcade.collide(enemies, platforms);
-
-	/* Player movement */
+	updatePlayer();
+	updateEnemies();
 	
 	runSpeed = 350;
-
-	// updateEnemy();
-	updateEnemies();
-
-
-	// Enable double jump when grounded
-	// Warning: may also count as touching when landing on sprites other than 'ground'
-	if(player.body.touching.down){
-		canDoubleJump = true;
-	}
-
 
 	/* Background */
 	farBackground.tilePosition.x 	-= runSpeed * 0.001;
 	nearBackground.tilePosition.x 	-= runSpeed * 0.003;
 	foreground.tilePosition.x 		-= runSpeed * 0.012;
-
-
-
-	if(player.body.touching.down && playerState != stateEnum.JUMPSQUAT){
-		// player.animations.play('right');
-		// playerState = stateEnum.RUNNING;
-		changeState("RUNNING");
-		// player.animations.play('kick');
-	}
-
-	updatePlayerAnimation();
 
 
 }
