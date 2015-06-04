@@ -42,7 +42,8 @@ var stateEnum = Object.freeze(
 			RUNNING: {},
 			JUMPSQUAT: {},
 			JUMPING: {},
-			ATTACKING: {}
+			ATTACKING: {},
+			FROZEN: {}
 		}
 	);
 var playerState;
@@ -164,6 +165,7 @@ function create() {
 	kickHitbox.knockbackDir = 0.5;
 	kickHitbox.knockbackBase = 1000;
 	kickHitbox.knockbackScaling = 1.0;
+	kickHitbox.freezeFrames = 5;
 	kickHitbox.anchor.set(0.5);
 
 
@@ -175,6 +177,7 @@ function create() {
 	for(var i = 0; i < 10; i++){
 		enemies.create(game.world.randomX + 300, game.world.randomY / 2, 'enemy');
 		enemies.children[i].hitstun = false;
+		enemies.children[i].invincible = false;
 		enemies.children[i].anchor.set(0.5);
 		// enemies.children[i].body.bounce = 1;
 
@@ -230,6 +233,7 @@ function create() {
 	// player.frameName = 'mario_run_5.png';	// <- how to set to a specific frame
 
 	playerState = stateEnum.RUNNING;
+	canDoubleJump = true;
 	updatePlayerAnimation();
 	disableAllHitboxes();
 
@@ -252,24 +256,72 @@ function onEnemyKick(hitbox, enemy){
 	//		freeze frames
 	// 		ensure each attack can only hit an enemy once
 
-	enemy.body.velocity.x = 0;
-	enemy.body.velocity.y = 0;
-	enemy.hitstun = true;
-	enemy.rotation = hitbox.knockbackDir;
-	enemy.body.velocity.x = Math.cos(hitbox.knockbackDir) * hitbox.knockbackBase * hitbox.knockbackScaling;
-	enemy.body.velocity.y = -Math.sin(hitbox.knockbackDir) * hitbox.knockbackBase * hitbox.knockbackScaling;
+	if(enemy.invincible === false){
 
-	// Temporary: reset enemy after a moment
-	game.time.events.add( 	500, 
+		// temporary(?): prevent same attacking hitting more than once
+		enemy.invincible = true;
+		enemy.body.velocity.x = 0;
+		enemy.body.velocity.y = 0;
+		freezePlayer(hitbox);
+		// freeze enemy to show the impact
+		game.time.events.add(75, function(){knockbackEnemy(hitbox,enemy);}, game);
+
+
+		// enemy.body.velocity.x = 0;
+		// enemy.body.velocity.y = 0;
+		// enemy.hitstun = true;
+		// enemy.rotation = hitbox.knockbackDir;
+		// enemy.body.velocity.x = Math.cos(hitbox.knockbackDir) * hitbox.knockbackBase * hitbox.knockbackScaling;
+		// enemy.body.velocity.y = -Math.sin(hitbox.knockbackDir) * hitbox.knockbackBase * hitbox.knockbackScaling;
+
+		// // Temporary: reset enemy after a moment
+		// game.time.events.add( 	500, 
+		// 					function() {
+		// 						enemy.invincible = false;
+		// 						enemy.body.velocity.y = 0;
+		// 						enemy.rotation = 0;
+		// 						enemy.hitstun = false;
+		// 					}, 
+		// 					game);
+	}
+	
+
+}
+
+function knockbackEnemy(hitbox, enemy){
+
+		enemy.body.velocity.x = 0;
+		enemy.body.velocity.y = 0;
+		enemy.hitstun = true;
+		enemy.rotation = hitbox.knockbackDir;
+		enemy.body.velocity.x = Math.cos(hitbox.knockbackDir) * hitbox.knockbackBase * hitbox.knockbackScaling;
+		enemy.body.velocity.y = -Math.sin(hitbox.knockbackDir) * hitbox.knockbackBase * hitbox.knockbackScaling;
+
+		// Temporary: reset enemy after a moment
+		game.time.events.add( 	500, 
 							function() {
 								enemy.body.velocity.y = 0;
 								enemy.rotation = 0;
 								enemy.hitstun = false;
 							}, 
 							game);
-
 }
 
+// temp: freeze player during attack impact
+function freezePlayer(hitbox){
+	console.log("warning: bug: loses all momentum if hitting multiple enemies" ) ;
+	var currentFallSpeed = player.body.velocity.y;
+	// console.log("saving speed: " + currentFallSpeed);
+
+	// freeze player
+	changeState("FROZEN");
+
+	// unfreeze after freeze time ends
+	game.time.events.add(75, function(){
+		changeState("ATTACKING");
+		player.body.velocity.y = currentFallSpeed;
+	}, game);
+}
 
 // a kick attack
 function kick(){
@@ -330,6 +382,9 @@ function changeState(newstate){
 		case stateEnum.ATTACKING:
 			onExitAttacking();
 			break;
+		case stateEnum.FROZEN:
+			onExitFrozen();
+			break;
 		default:
 			console.log("error in changeState: somehow exiting a state that doesn't exist");
 			break;
@@ -355,6 +410,10 @@ function changeState(newstate){
 		case "ATTACKING":
 			playerState = stateEnum.ATTACKING;
 			onEnterAttacking();
+			break;
+		case "FROZEN":
+			playerState = stateEnum.FROZEN;
+			onEnterFrozen();
 			break;
 		default:
 			console.log("error in changeState: trying to change to invalid state. Ignoring.");
@@ -403,6 +462,20 @@ function onEnterAttacking(){
 
 function onExitAttacking(){
 	disableAllHitboxes();
+	// make all enemies vulnerable to attacks again
+	for(var i = 0; i < enemies.children.length; i++){
+		enemies.children[i].invincible = false;
+	}
+}
+
+// FROZEN
+function onEnterFrozen(){
+	player.body.gravity.y = 0;
+	player.body.velocity.y = 0;
+}
+
+function onExitFrozen(){
+	player.body.gravity.y = 4500;
 }
 
 /*********************************** Jumping (player) ***************************************
@@ -539,6 +612,10 @@ function updatePlayer(){
 			}
 			break;
 
+		case stateEnum.FROZEN:
+			// player.body.velocity.y = 0;
+			break;
+
 		default:
 			console.log("error in updatePlayer: player in invalid state");
 			break;
@@ -566,6 +643,10 @@ function updatePlayerAnimation(){
 
 		case stateEnum.ATTACKING:
 			player.animations.play('kick');
+			break;
+
+		case stateEnum.FROZEN:
+			// player.animations.stop();
 			break;
 
 		default:
@@ -627,6 +708,9 @@ function update() {
 	farBackground.tilePosition.x 	-= runSpeed * 0.001;
 	nearBackground.tilePosition.x 	-= runSpeed * 0.003;
 	foreground.tilePosition.x 		-= runSpeed * 0.012;
+
+	// temp
+	// console.log("player fall speed: " + player.body.velocity.y );
 
 
 }
