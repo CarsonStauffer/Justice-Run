@@ -29,9 +29,7 @@ Enemy.prototype.constructor = Enemy;
 
 Enemy.prototype.getHit = function(enemy, hitbox){
 	
-	console.log("got hit. invincible: " + enemy.invincible);
 	if(enemy.invincible === false){
-		console.log("launching");
 		enemy.invincible = true;
 		enemy.body.velocity.x = 0;
 		enemy.body.velocity.y = 0;
@@ -78,8 +76,7 @@ Enemy.prototype.update = function(){
 	}
 
 	// check if hit by attack
-	if(playerState === stateEnum.ATTACKING){
-
+	if(player.state === stateEnum.ATTACKING){
 		game.physics.arcade.overlap(this, hitboxes, this.getHit);
 	}
 

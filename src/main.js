@@ -25,7 +25,6 @@ var self = this;
 
 var platforms;
 var player;
-// var enemy;
 var enemies;
 var cursors;
 
@@ -33,8 +32,6 @@ var farBackground;
 var nearBackground;
 var foreground;
 
-var runSpeed;
-var canDoubleJump = false;
 
 // Enum for different player states
 var stateEnum = Object.freeze(
@@ -46,9 +43,7 @@ var stateEnum = Object.freeze(
 			FROZEN: {}
 		}
 	);
-var playerState;
 
-// var kickHitbox;
 var hitboxes;
 
 // testing hitbox reset bug
@@ -100,8 +95,6 @@ function create() {
 
 	// create a group for the platforms and ground
 	platforms = game.add.group();
-
-	// add the platforms and ground to physics
 	platforms.enableBody = true;
 
 
@@ -110,52 +103,19 @@ function create() {
 	platforms.add(foreground);
 	foreground.body.immovable = true;
 
-	// create some platforms
-	// var platform = platforms.create(-150, game.world.height/2 - 16, 'block');
-	// platform.body.immovable = true;
 
-	// platform = platforms.create(400, 400, 'block');
-	// platform.body.immovable = true;
 
-	/* Player animations */
-	player = game.add.sprite(100,0, 'mario atlas');
-	player.animations.add('run', Phaser.Animation.generateFrameNames('mario_run_', 1, 8, '.png'), 24, true);
-	player.animations.add('jumpsquat', ['mario jumpsquat.png'], 1, true);
-	player.animations.add('jump', ['mario_jump.png'], 1, true);
-	player.animations.add('kick', ['mario_kick.png'], 1, true);
+	player = new Player(game);
 
 
 
-	
-
-
-
-	// create the player
-	game.physics.arcade.enable(player);
-	player.body.checkCollision.up = false;
-	player.body.checkCollision.left = false;
-	player.body.checkCollision.right = false;
-	player.body.setSize(32, 72, 20, 16);
-
-	// player.body.setSize(30,45, 0,0);	// <- use this to change collision size for the player
-
-	// Player physics properties
-	player.body.gravity.y = 4500;
-	player.body.collideWorldBounds = true;
 
 
 	/* Player Hitboxes */
-	// kickHitbox = game.add.sprite(player.width,player.height/3*2, null);
+	// todo: move into player or their own prototype
 	hitboxes = game.add.group();
 	hitboxes.enableBody = true;
 	player.addChild(hitboxes);
-
-	// testing creating a hitbox without needing a global variable
-	// ...it works!
-	// var transientHitbox = hitboxes.create(0, 0, null);
-	// transientHitbox.body.setSize(180, 45, player.width, 0);
-	// transientHitbox.name = "gay";
-	// transientHitbox.anchor.set(0.5);
 
 
 	var kickHitbox = hitboxes.create(0, 0, null);
@@ -170,26 +130,16 @@ function create() {
 
 
 
-	// testing enemy
+	// Enemies
 	enemies = game.add.group();
-	// enemies.enableBody = true;
-	// enemies.createMultiple(10, 'enemy');
 
 	for(var i = 0; i < 10; i++){
-
-		// old code from (single file game) 
-		// enemies.create(game.world.randomX + 300, game.world.randomY / 2, 'enemy');
-		// enemies.children[i].hitstun = false;
-		// enemies.children[i].invincible = false;
-		// enemies.children[i].anchor.set(0.5);
-		// enemies.children[i].body.bounce = 1;
 		
 		var enemy = new Enemy(game);
 		enemies.add(enemy);
 
 	}
 
-	// enemies.setAll('body.gravity.y', 100);
 
 	// testing hitbox reset bug
 	// dude = game.add.sprite(30,30, 'enemy');
@@ -231,9 +181,6 @@ function create() {
 
 	// player.frameName = 'mario_run_5.png';	// <- how to set to a specific frame
 
-	playerState = stateEnum.RUNNING;
-	canDoubleJump = true;
-	updatePlayerAnimation();
 	disableAllHitboxes();
 
 }
@@ -246,67 +193,6 @@ function create() {
  * 
  *******************************************************************************************/
 
-
-// Temporary: demonstrate enemy hit by attack
-// function onEnemyKick(hitbox, enemy){
-
-// 	// todo:
-// 	//		use enemy health
-// 	//		freeze frames
-// 	// 		ensure each attack can only hit an enemy once
-
-	
-// 	if(enemy.invincible === false){
-
-// 		// temporary(?): prevent same attacking hitting more than once
-// 		enemy.invincible = true;
-// 		enemy.body.velocity.x = 0;
-// 		enemy.body.velocity.y = 0;
-// 		freezePlayer(hitbox);
-// 		// freeze enemy to show the impact
-// 		game.time.events.add(75, function(){knockbackEnemy(hitbox,enemy);}, game);
-
-
-// 		// enemy.body.velocity.x = 0;
-// 		// enemy.body.velocity.y = 0;
-// 		// enemy.hitstun = true;
-// 		// enemy.rotation = hitbox.knockbackDir;
-// 		// enemy.body.velocity.x = Math.cos(hitbox.knockbackDir) * hitbox.knockbackBase * hitbox.knockbackScaling;
-// 		// enemy.body.velocity.y = -Math.sin(hitbox.knockbackDir) * hitbox.knockbackBase * hitbox.knockbackScaling;
-
-// 		// // Temporary: reset enemy after a moment
-// 		// game.time.events.add( 	500, 
-// 		// 					function() {
-// 		// 						enemy.invincible = false;
-// 		// 						enemy.body.velocity.y = 0;
-// 		// 						enemy.rotation = 0;
-// 		// 						enemy.hitstun = false;
-// 		// 					}, 
-// 		// 					game);
-// 	}
-	
-
-// }
-
-// function knockbackEnemy(hitbox, enemy){
-
-// 		enemy.body.velocity.x = 0;
-// 		enemy.body.velocity.y = 0;
-// 		enemy.hitstun = true;
-// 		enemy.rotation = hitbox.knockbackDir;
-// 		enemy.body.velocity.x = Math.cos(hitbox.knockbackDir) * hitbox.knockbackBase * hitbox.knockbackScaling;
-// 		enemy.body.velocity.y = -Math.sin(hitbox.knockbackDir) * hitbox.knockbackBase * hitbox.knockbackScaling;
-
-// 		// Temporary: reset enemy after a moment
-// 		game.time.events.add( 	500, 
-// 							function() {
-// 								enemy.body.velocity.y = 0;
-// 								enemy.rotation = 0;
-// 								enemy.hitstun = false;
-// 							}, 
-// 							game);
-// }
-
 // temp: freeze player during attack impact
 function freezePlayer(hitbox){
 	console.log("warning: bug: loses all momentum if hitting multiple enemies" ) ;
@@ -314,34 +200,14 @@ function freezePlayer(hitbox){
 	// console.log("saving speed: " + currentFallSpeed);
 
 	// freeze player
-	changeState("FROZEN");
+	player.changeState("FROZEN");
 
 	// unfreeze after freeze time ends
 	game.time.events.add(75, function(){
-		changeState("ATTACKING");
+		player.changeState("ATTACKING");
 		player.body.velocity.y = currentFallSpeed;
 	}, game);
 }
-
-// a kick attack
-function kick(){
-	// playerState = stateEnum.ATTACKING;
-	changeState("ATTACKING");
-
-	enableHitbox("kick");
-	// testing ending attacks
-	game.time.events.add(500, endAttack, game);
-}
-
-// temp: end the kick attack
-		// then somehow return to correct state
-function endAttack(){
-	// If still attacking (haven't landed, been hit, etc)
-	if(playerState === stateEnum.ATTACKING){
-		changeState("JUMPING");
-	}
-}
-
 
 // enable a hitbox by name
 function enableHitbox(hitbox){
@@ -359,164 +225,6 @@ function disableAllHitboxes(){
 }
 
 
-/*********************************** States (player) ****************************************
- * changeState()
- * onExit functions
- * onEnter functions
- *******************************************************************************************/
-
-function changeState(newstate){
-
-	// call onExit
-	switch(playerState){
-
-		case stateEnum.RUNNING:
-			onExitRunning();
-			break;
-		case stateEnum.JUMPING:
-			onExitJumping();
-			break;
-		case stateEnum.JUMPSQUAT:
-			onExitJumpsquat();
-			break;
-		case stateEnum.ATTACKING:
-			onExitAttacking();
-			break;
-		case stateEnum.FROZEN:
-			onExitFrozen();
-			break;
-		default:
-			console.log("error in changeState: somehow exiting a state that doesn't exist");
-			break;
-	}
-
-	// change state and call onEnter
-	newstate = newstate.toUpperCase();
-
-	switch(newstate){
-
-		case "RUNNING":
-			playerState = stateEnum.RUNNING;
-			onEnterRunning();
-			break;
-		case "JUMPING":
-			playerState = stateEnum.JUMPING;
-			onEnterJumping();
-			break;
-		case "JUMPSQUAT":
-			playerState = stateEnum.JUMPSQUAT;
-			onEnterJumpsquat();
-			break;
-		case "ATTACKING":
-			playerState = stateEnum.ATTACKING;
-			onEnterAttacking();
-			break;
-		case "FROZEN":
-			playerState = stateEnum.FROZEN;
-			onEnterFrozen();
-			break;
-		default:
-			console.log("error in changeState: trying to change to invalid state. Ignoring.");
-			break;
-	}
-
-	updatePlayerAnimation();
-
-}
-
-// RUNNING
-function onEnterRunning(){
-	canDoubleJump = true;
-}
-
-function onExitRunning(){
-
-}
-
-
-// JUMPING
-function onEnterJumping(){
-
-}
-
-function onExitJumping(){
-	
-}
-
-
-// JUMPSQUAT
-function onEnterJumpsquat(){
-	// attempt to execute a fullhop after a short time
-	var fullHopTimer = game.time.events.add( 150, fullhop, game);
-}
-
-function onExitJumpsquat(){
-	
-}
-
-
-// ATTACKING
-function onEnterAttacking(){
-
-}
-
-function onExitAttacking(){
-	disableAllHitboxes();
-	// make all enemies vulnerable to attacks again
-	for(var i = 0; i < enemies.children.length; i++){
-		enemies.children[i].invincible = false;
-	}
-}
-
-// FROZEN
-function onEnterFrozen(){
-	player.body.gravity.y = 0;
-	player.body.velocity.y = 0;
-}
-
-function onExitFrozen(){
-	player.body.gravity.y = 4500;
-}
-
-/*********************************** Jumping (player) ***************************************
- * jumpsquat()
- * doubleJump()
- * shorthop()
- * fullhop()
- *******************************************************************************************/
-
-
-// Double jump if player hasn't already
-function doubleJump(){
-
-	if(canDoubleJump === true){
-		player.body.velocity.y = -1300;
-		canDoubleJump = false;
-	}
-}
-
-// Immediately perform a shorthop
-function shorthop() {
-
-	player.body.velocity.y = -800;
-	// playerState = stateEnum.JUMPING;
-	changeState("JUMPING");
-
-}
-
-// Full hop if player didn't short hop
-function fullhop(){
-
-	// Check that the player is still in jumpsquat (he didn't short hop)
-	if(playerState === stateEnum.JUMPSQUAT){
-		player.body.velocity.y = -1500;
-		// playerState = stateEnum.JUMPING;
-		changeState("JUMPING");
-	}	
-}
-
-
-
 /***************************************** Input ********************************************
  * leftButtonPressed()
  * leftButtonReleased()
@@ -526,16 +234,16 @@ function fullhop(){
 
 
 function leftButtonPressed(){
-	switch(playerState){
+	switch(player.state){
 
 		case stateEnum.RUNNING:
 
 			// jumpsquat();
-			changeState("JUMPSQUAT");
+			player.changeState("JUMPSQUAT");
 			break;
 
 		case stateEnum.JUMPING:
-			doubleJump();
+			player.doubleJump();
 			break;
 
 		default:
@@ -545,20 +253,20 @@ function leftButtonPressed(){
 }
 
 function leftButtonReleased(){
-	switch(playerState){
+	switch(player.state){
 
 		case stateEnum.JUMPSQUAT:
-			shorthop();
+			player.shorthop();
 			break;
 	}
 }
 
 function rightButtonPressed(){
 
-	switch(playerState){
+	switch(player.state){
 
 		case(stateEnum.JUMPING):
-			kick();
+			player.kick();
 			break;
 
 		default:
@@ -575,116 +283,11 @@ function rightButtonReleased(){
 
 
 /*********************************** Main Game Loop *****************************************
- * updatePlayerAnimation()
- * updateEnemies()
  * update()
  * render()
  * renderGroup()
  *******************************************************************************************/
 
-
-// temporary: update the player based on state
-function updatePlayer(){
-
-	var grounded = false;
-
-	if(game.physics.arcade.collide(player, platforms) ){
-		grounded = true;
-	}
-
-	switch(playerState){
-
-		case stateEnum.RUNNING:
-			break;
-
-		case stateEnum.JUMPSQUAT:
-			break;
-
-		case stateEnum.JUMPING:
-			if(player.body.touching.down){
-				changeState("RUNNING");
-			}
-			break;
-
-		case stateEnum.ATTACKING:
-			if(grounded){
-				endAttack();
-			}
-			break;
-
-		case stateEnum.FROZEN:
-			// player.body.velocity.y = 0;
-			break;
-
-		default:
-			console.log("error in updatePlayer: player in invalid state: " + playerState);
-			break;
-	}
-
-}
-
-
-// Set the player's animation based on his state
-function updatePlayerAnimation(){
-
-	switch(playerState){
-
-		case stateEnum.RUNNING:
-			player.animations.play('run');
-			break;
-
-		case stateEnum.JUMPSQUAT:
-			player.animations.play('jumpsquat');
-			break;
-
-		case stateEnum.JUMPING:
-			player.animations.play('jump');
-			break;
-
-		case stateEnum.ATTACKING:
-			player.animations.play('kick');
-			break;
-
-		case stateEnum.FROZEN:
-			// player.animations.stop();
-			break;
-
-		default:
-			console.log("error: no animation for player state: " + playerState );
-			break;
-	}
-
-}
-
-// testing group enemy update
-// function updateEnemies(){
-
-// 	game.physics.arcade.collide(enemies, platforms);
-
-// 	for(var i = 0; i < enemies.children.length; i++){
-
-// 		// wrap horizontally
-// 		if(enemies.children[i].body.x < 0 - enemies.children[i].body.width){
-// 			enemies.children[i].body.x = game.world.width;
-// 		}
-
-// 		// Move if not hit
-// 		if(enemies.children[i].hitstun === false){
-// 			enemies.children[i].body.velocity.x = -150;
-// 		}
-
-// 		// Rotate during hitstun
-// 		else{
-// 			enemies.children[i].rotation = (Math.PI / 2) + Math.atan(enemies.children[i].body.velocity.y / enemies.children[i].body.velocity.x);
-// 		}
-
-// 	}
-
-
-// 	// check if enemy hit by attack
-// 	if(playerState === stateEnum.ATTACKING){
-// 		game.physics.arcade.overlap(hitboxes, enemies, onEnemyKick);
-// 	}
 
 // 	// testing hitbox reset bug
 // 	// game.physics.arcade.overlap(hitboxes, dude, function(){
@@ -699,15 +302,15 @@ function updatePlayerAnimation(){
 
 function update() {
 
-	updatePlayer();
+	// updatePlayer();
 	// updateEnemies();
 	
-	runSpeed = 350;
+	// runSpeed = 350;
 
 	/* Background */
-	farBackground.tilePosition.x 	-= runSpeed * 0.001;
-	nearBackground.tilePosition.x 	-= runSpeed * 0.003;
-	foreground.tilePosition.x 		-= runSpeed * 0.012;
+	farBackground.tilePosition.x 	-= player.runSpeed * 0.001;
+	nearBackground.tilePosition.x 	-= player.runSpeed * 0.003;
+	foreground.tilePosition.x 		-= player.runSpeed * 0.012;
 
 	// temp
 	// console.log("player fall speed: " + player.body.velocity.y );
@@ -718,7 +321,7 @@ function update() {
 function render(){
 	game.debug.body(player);
 	hitboxes.forEachExists(renderGroup, this);
-	// enemies.forEachAlive(renderGroup, this);
+	enemies.forEachAlive(renderGroup, this);
 
 	// testing hitbox reset bug
 	 // game.debug.body(dude);
