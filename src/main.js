@@ -25,7 +25,7 @@ var self = this;
 
 var platforms;
 var player;
-var enemy;
+// var enemy;
 var enemies;
 var cursors;
 
@@ -172,29 +172,28 @@ function create() {
 
 	// testing enemy
 	enemies = game.add.group();
-	enemies.enableBody = true;
+	// enemies.enableBody = true;
 	// enemies.createMultiple(10, 'enemy');
+
 	for(var i = 0; i < 10; i++){
-		enemies.create(game.world.randomX + 300, game.world.randomY / 2, 'enemy');
-		enemies.children[i].hitstun = false;
-		enemies.children[i].invincible = false;
-		enemies.children[i].anchor.set(0.5);
+
+		// old code from (single file game) 
+		// enemies.create(game.world.randomX + 300, game.world.randomY / 2, 'enemy');
+		// enemies.children[i].hitstun = false;
+		// enemies.children[i].invincible = false;
+		// enemies.children[i].anchor.set(0.5);
 		// enemies.children[i].body.bounce = 1;
+		
+		var enemy = new Enemy(game);
+		enemies.add(enemy);
 
 	}
-	enemies.setAll('body.gravity.y', 100);
+
+	// enemies.setAll('body.gravity.y', 100);
 
 	// testing hitbox reset bug
 	// dude = game.add.sprite(30,30, 'enemy');
 	// game.physics.arcade.enable(dude);
-
-
-	// enemy = game.add.sprite(game.world.width - 100, 0, 'enemy');
-	// game.physics.arcade.enable(enemy);
-	// enemy.body.gravity.y = 100;
-	// enemy.animations.add('run left', [0,1,2,3], 8, true);
-	// enemy.animations.play('run left');
-	// enemy.hitstun = false;
 
 
 	// initialize keyboard cursors
@@ -249,63 +248,64 @@ function create() {
 
 
 // Temporary: demonstrate enemy hit by attack
-function onEnemyKick(hitbox, enemy){
+// function onEnemyKick(hitbox, enemy){
 
-	// todo:
-	//		use enemy health
-	//		freeze frames
-	// 		ensure each attack can only hit an enemy once
+// 	// todo:
+// 	//		use enemy health
+// 	//		freeze frames
+// 	// 		ensure each attack can only hit an enemy once
 
-	if(enemy.invincible === false){
+	
+// 	if(enemy.invincible === false){
 
-		// temporary(?): prevent same attacking hitting more than once
-		enemy.invincible = true;
-		enemy.body.velocity.x = 0;
-		enemy.body.velocity.y = 0;
-		freezePlayer(hitbox);
-		// freeze enemy to show the impact
-		game.time.events.add(75, function(){knockbackEnemy(hitbox,enemy);}, game);
+// 		// temporary(?): prevent same attacking hitting more than once
+// 		enemy.invincible = true;
+// 		enemy.body.velocity.x = 0;
+// 		enemy.body.velocity.y = 0;
+// 		freezePlayer(hitbox);
+// 		// freeze enemy to show the impact
+// 		game.time.events.add(75, function(){knockbackEnemy(hitbox,enemy);}, game);
 
 
-		// enemy.body.velocity.x = 0;
-		// enemy.body.velocity.y = 0;
-		// enemy.hitstun = true;
-		// enemy.rotation = hitbox.knockbackDir;
-		// enemy.body.velocity.x = Math.cos(hitbox.knockbackDir) * hitbox.knockbackBase * hitbox.knockbackScaling;
-		// enemy.body.velocity.y = -Math.sin(hitbox.knockbackDir) * hitbox.knockbackBase * hitbox.knockbackScaling;
+// 		// enemy.body.velocity.x = 0;
+// 		// enemy.body.velocity.y = 0;
+// 		// enemy.hitstun = true;
+// 		// enemy.rotation = hitbox.knockbackDir;
+// 		// enemy.body.velocity.x = Math.cos(hitbox.knockbackDir) * hitbox.knockbackBase * hitbox.knockbackScaling;
+// 		// enemy.body.velocity.y = -Math.sin(hitbox.knockbackDir) * hitbox.knockbackBase * hitbox.knockbackScaling;
 
-		// // Temporary: reset enemy after a moment
-		// game.time.events.add( 	500, 
-		// 					function() {
-		// 						enemy.invincible = false;
-		// 						enemy.body.velocity.y = 0;
-		// 						enemy.rotation = 0;
-		// 						enemy.hitstun = false;
-		// 					}, 
-		// 					game);
-	}
+// 		// // Temporary: reset enemy after a moment
+// 		// game.time.events.add( 	500, 
+// 		// 					function() {
+// 		// 						enemy.invincible = false;
+// 		// 						enemy.body.velocity.y = 0;
+// 		// 						enemy.rotation = 0;
+// 		// 						enemy.hitstun = false;
+// 		// 					}, 
+// 		// 					game);
+// 	}
 	
 
-}
+// }
 
-function knockbackEnemy(hitbox, enemy){
+// function knockbackEnemy(hitbox, enemy){
 
-		enemy.body.velocity.x = 0;
-		enemy.body.velocity.y = 0;
-		enemy.hitstun = true;
-		enemy.rotation = hitbox.knockbackDir;
-		enemy.body.velocity.x = Math.cos(hitbox.knockbackDir) * hitbox.knockbackBase * hitbox.knockbackScaling;
-		enemy.body.velocity.y = -Math.sin(hitbox.knockbackDir) * hitbox.knockbackBase * hitbox.knockbackScaling;
+// 		enemy.body.velocity.x = 0;
+// 		enemy.body.velocity.y = 0;
+// 		enemy.hitstun = true;
+// 		enemy.rotation = hitbox.knockbackDir;
+// 		enemy.body.velocity.x = Math.cos(hitbox.knockbackDir) * hitbox.knockbackBase * hitbox.knockbackScaling;
+// 		enemy.body.velocity.y = -Math.sin(hitbox.knockbackDir) * hitbox.knockbackBase * hitbox.knockbackScaling;
 
-		// Temporary: reset enemy after a moment
-		game.time.events.add( 	500, 
-							function() {
-								enemy.body.velocity.y = 0;
-								enemy.rotation = 0;
-								enemy.hitstun = false;
-							}, 
-							game);
-}
+// 		// Temporary: reset enemy after a moment
+// 		game.time.events.add( 	500, 
+// 							function() {
+// 								enemy.body.velocity.y = 0;
+// 								enemy.rotation = 0;
+// 								enemy.hitstun = false;
+// 							}, 
+// 							game);
+// }
 
 // temp: freeze player during attack impact
 function freezePlayer(hitbox){
@@ -617,7 +617,7 @@ function updatePlayer(){
 			break;
 
 		default:
-			console.log("error in updatePlayer: player in invalid state");
+			console.log("error in updatePlayer: player in invalid state: " + playerState);
 			break;
 	}
 
@@ -657,50 +657,50 @@ function updatePlayerAnimation(){
 }
 
 // testing group enemy update
-function updateEnemies(){
+// function updateEnemies(){
 
-	game.physics.arcade.collide(enemies, platforms);
+// 	game.physics.arcade.collide(enemies, platforms);
 
-	for(var i = 0; i < enemies.children.length; i++){
+// 	for(var i = 0; i < enemies.children.length; i++){
 
-		// wrap horizontally
-		if(enemies.children[i].body.x < 0 - enemies.children[i].body.width){
-			enemies.children[i].body.x = game.world.width;
-		}
+// 		// wrap horizontally
+// 		if(enemies.children[i].body.x < 0 - enemies.children[i].body.width){
+// 			enemies.children[i].body.x = game.world.width;
+// 		}
 
-		// Move if not hit
-		if(enemies.children[i].hitstun === false){
-			enemies.children[i].body.velocity.x = -150;
-		}
+// 		// Move if not hit
+// 		if(enemies.children[i].hitstun === false){
+// 			enemies.children[i].body.velocity.x = -150;
+// 		}
 
-		// Rotate during hitstun
-		else{
-			enemies.children[i].rotation = (Math.PI / 2) + Math.atan(enemies.children[i].body.velocity.y / enemies.children[i].body.velocity.x);
-		}
+// 		// Rotate during hitstun
+// 		else{
+// 			enemies.children[i].rotation = (Math.PI / 2) + Math.atan(enemies.children[i].body.velocity.y / enemies.children[i].body.velocity.x);
+// 		}
 
-	}
+// 	}
 
 
-	// check if enemy hit by attack
-	if(playerState === stateEnum.ATTACKING){
-		game.physics.arcade.overlap(hitboxes, enemies, onEnemyKick);
-	}
+// 	// check if enemy hit by attack
+// 	if(playerState === stateEnum.ATTACKING){
+// 		game.physics.arcade.overlap(hitboxes, enemies, onEnemyKick);
+// 	}
 
-	// testing hitbox reset bug
-	// game.physics.arcade.overlap(hitboxes, dude, function(){
-	// 	console.log("Hit! :(");
-	// });
-	// game.physics.arcade.overlap(hitboxes, enemies, function(){
-	// 	console.log("FUCKING CHRIST :(");
-	// });
+// 	// testing hitbox reset bug
+// 	// game.physics.arcade.overlap(hitboxes, dude, function(){
+// 	// 	console.log("Hit! :(");
+// 	// });
+// 	// game.physics.arcade.overlap(hitboxes, enemies, function(){
+// 	// 	console.log("FUCKING CHRIST :(");
+// 	// });
 	
 
-}
+// }
 
 function update() {
 
 	updatePlayer();
-	updateEnemies();
+	// updateEnemies();
 	
 	runSpeed = 350;
 
@@ -718,7 +718,7 @@ function update() {
 function render(){
 	game.debug.body(player);
 	hitboxes.forEachExists(renderGroup, this);
-	enemies.forEachAlive(renderGroup, this);
+	// enemies.forEachAlive(renderGroup, this);
 
 	// testing hitbox reset bug
 	 // game.debug.body(dude);
